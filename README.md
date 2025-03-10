@@ -30,7 +30,7 @@ Desde STM32CubeIDE, `File > Open Projects From File System`.
 En `Import Source` hacé click en `Directory` y seleccioná la carpeta del proyecto dentro de la carpeta donde clonaste el repo, por ejemplo: `~/reposParaReview/jezabeld_CESE_PdM/PdM_practica0` y click en `Open`.
 Deberías ver una pantalla como la siguiente en la que se lista la carpeta del proyecto y en `Import as` dice `STM32CubeIDE project`: 
 
-![](./img/importProyect.png)
+![](./img/importProject.png)
 
 Hacé click en `Finish` para importar el proyecto.
 Buildeá y corré el proyecto como siempre.
