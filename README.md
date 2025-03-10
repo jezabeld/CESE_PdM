@@ -18,12 +18,12 @@ Para clonar este repositorio localmente, ejecutá el siguiente comando en tu ter
 ```bash
 git clone https://github.com/jezabeld/CESE_PdM.git
 
-# Opcionalmente podes clonar el repo cambiandole el nombre a la carpeta con el nombre del usuario en caso de que los repos a revisar tengan nombres parecidos, por ejemplo:
+# Opcionalmente podés clonar el repo cambiandole el nombre a la carpeta con el nombre del usuario en caso de que los repos a revisar tengan nombres parecidos, por ejemplo:
 
 git clone https://github.com/jezabeld/CESE_PdM.git jezabeld_CESE_PdM
 ```
 
-Les recomiendo crear una carpeta donde clonar los repos de companeros para hacer review asi no se les mezclan los proyectos propios con los de los demás.
+Les recomiendo crear una carpeta donde clonar los repos de compañeros para hacer review así no se mezclan los proyectos propios con los de los demás.
 
 ## Importar los proyectos en STM32CubeIDE
 Desde STM32CubeIDE, `File > Open Projects From File System`.
@@ -34,4 +34,3 @@ Deberías ver una pantalla como la siguiente en la que se lista la carpeta del p
 
 Hacé click en `Finish` para importar el proyecto.
 Buildeá y corré el proyecto como siempre.
-
