@@ -1,13 +1,13 @@
 # Programación de Microcontroladores - CESE - UBA
 
-Este repositorio contiene las prácticas de la materia **Programación de Microcontroladores** del Curso de Especialización en Sistemas Embebidos.  
+Este repositorio contiene las prácticas de la materia **Programación de Microcontroladores** de la Carrera de Especialización en Sistemas Embebidos.  
 Los proyectos están desarrollados para el entorno **STM32CubeIDE**.  
 
 ## Requisitos para correr estos proyectos
 
 - **STM32CubeIDE** (versión utilizada: `1.17.0`)
 - **STM32CubeMX** (integrado en CubeIDE)
-- Placa de desarrollo **STM32 NUCLEO-F446RE**
+- Placa de desarrollo `STM32 NUCLEO-F446RE`
 
 ---
 
@@ -18,7 +18,8 @@ Para clonar este repositorio localmente, ejecutá el siguiente comando en tu ter
 ```bash
 git clone https://github.com/jezabeld/CESE_PdM.git
 
-# Opcionalmente podés clonar el repo cambiandole el nombre a la carpeta con el nombre del usuario en caso de que los repos a revisar tengan nombres parecidos, por ejemplo:
+# Opcionalmente podés clonar el repo cambiandole el nombre a la carpeta con el nombre 
+# del usuario en caso de que los repos a revisar tengan nombres parecidos, por ejemplo:
 
 git clone https://github.com/jezabeld/CESE_PdM.git jezabeld_CESE_PdM
 ```
