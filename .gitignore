@@ -5,6 +5,7 @@
 # Build output directories
 */Debug/
 */Release/
+*.metadata/
 
 # CubeIDE configuration files
 */.settings/
