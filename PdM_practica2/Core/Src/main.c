@@ -64,6 +64,17 @@ void delayWrite( delay_t * delay, tick_t duration ){
 	delay->duration = duration;
 }
 
+void counterInit(uint8_t * counter, uint8_t limit){
+	*counter = limit;
+}
+
+bool_t counterDown(uint8_t * counter){
+	if(!(--(*counter))){
+		return true;
+	}
+	return false;
+}
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -111,8 +122,14 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   delay_t my_delay;
-  tick_t duracion = 100;
-  delayInit(&my_delay, duracion);
+  uint8_t my_counter;
+  const uint8_t BLINK_PER_DELAY = 10; // cantidad de parpadeos por valor de delay x2 (led on/led off)
+  const uint8_t NUM_DELAY = 3; //cantidad de valores de delay en el array
+
+  tick_t duracion[] = {1000, 200, 100};
+  uint8_t indice_delay = 0;
+  delayInit(&my_delay, duracion[indice_delay]);
+  counterInit(&my_counter, BLINK_PER_DELAY);
 
   /* USER CODE END 2 */
 
@@ -125,7 +142,12 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	  if(delayRead(&my_delay)){ // si se cumplio el delay, toggle y reiniciar el delay
 		  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-		  delayInit(&my_delay, duracion);
+
+		  if(counterDown(&my_counter)){ // si el contador termino, muevo el indice de valores de delay y lo reinicio
+			  indice_delay = (indice_delay + 1) % NUM_DELAY;
+			  counterInit(&my_counter, BLINK_PER_DELAY);
+		  }
+		  delayInit(&my_delay, duracion[indice_delay]);
 	  }
   }
   /* USER CODE END 3 */

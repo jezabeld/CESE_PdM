@@ -89,6 +89,9 @@ void delayInit( delay_t * delay, tick_t duration );
 bool_t delayRead( delay_t * delay );
 void delayWrite( delay_t * delay, tick_t duration );
 
+void counterInit(uint8_t * counter, uint8_t limit);
+bool_t counterDown(uint8_t * counter);
+
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
