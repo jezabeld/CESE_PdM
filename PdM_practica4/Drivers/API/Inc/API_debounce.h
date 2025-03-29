@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-
+#include <API_delay.h>
 
 typedef enum{
 	BUTTON_UP,
@@ -22,7 +22,8 @@ typedef enum{
 void debounceFSM_init(void);		// debe cargar el estado inicial
 void debounceFSM_update(void);	// debe leer las entradas, resolver la lógic transición de estados y actualizar las salidas
 
-void buttonPressed(void);			// debe encender el LED
-void buttonReleased(void);		// debe apagar el LED
+/* La función readKey debe leer una variable interna del módulo y devolver true o false si la tecla fue presionada.
+Si devuelve true, debe resetear (poner en false) el estado de la variable.*/
+bool_t readKey(void);
 
 #endif /* API_INC_API_DEBOUNCE_H_ */

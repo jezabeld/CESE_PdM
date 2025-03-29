@@ -44,7 +44,14 @@
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+uint8_t indiceDelay = 0;
+const uint8_t NUM_DELAY = 2; //cantidad de valores en el array de tiempos
+const uint32_t TIEMPOS[] = {500, 100};
 
+void switchDelayValue(void){
+	// indiceDelay debe ser siempre un valor entre 0 y (NUM_DELAY - 1)
+	indiceDelay = (indiceDelay + 1) % NUM_DELAY;
+}
 
 /* USER CODE END PV */
 
@@ -92,8 +99,12 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+  delay_t myDelay;
 
-  debounceFSM_init();
+
+    debounceFSM_init();
+    delayInit(&myDelay, TIEMPOS[indiceDelay]);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -101,6 +112,16 @@ int main(void)
   while (1)
   {
 	  debounceFSM_update();
+	  if(delayRead(&myDelay)){ // si se cumplio el delay, toggle y reiniciar el delay
+		  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+
+		  if(!delayIsRunning(&myDelay) && readKey()){// checkeo que el delay no este corriendo y que se haya presionado la tecla para cambiar el valor de delay
+			  switchDelayValue();
+			  delayWrite(&myDelay, TIEMPOS[indiceDelay]);
+		  }
+
+	  }
+
 
     /* USER CODE END WHILE */
 
