@@ -5,8 +5,8 @@ Los proyectos están desarrollados para el entorno **STM32CubeIDE**.
 
 ## Requisitos para correr estos proyectos
 
-- **STM32CubeIDE** (versión utilizada: `1.17.0`)
-- **STM32CubeMX** (integrado en CubeIDE)
+- **STM32CubeIDE** (versión utilizada: `1.18.0`)
+- **STM32CubeMX** (integrado en CubeIDE - versión utilizada: `6.14.0-RC8`)
 - Placa de desarrollo `STM32 NUCLEO-F446RE`
 
 ---
