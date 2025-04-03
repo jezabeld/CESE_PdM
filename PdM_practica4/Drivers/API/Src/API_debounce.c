@@ -53,9 +53,13 @@ void debounceFSM_update(){
 		}
 		break;
 	case BUTTON_FALLING:
-		if(delayRead(&debounceDelay) && !HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin)){ // si termino el delay y efectivamente esta presionado
-			FSMstate = BUTTON_DOWN;
-			buttonPressed();
+		if(delayRead(&debounceDelay)){ // si termino el delay
+			if(!HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin)){ // efectivamente esta presionado
+				FSMstate = BUTTON_DOWN;
+				buttonPressed();
+			} else { // fue ruido
+				FSMstate = BUTTON_UP;
+			}
 		}
 		break;
 	case BUTTON_DOWN:
@@ -65,8 +69,12 @@ void debounceFSM_update(){
 		}
 		break;
 	case BUTTON_RISING:
-		if(delayRead(&debounceDelay) && HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin)){ // si termino el delay y efectivamente se solto el boton
-			FSMstate = BUTTON_UP;
+		if(delayRead(&debounceDelay)){// si termino el delay
+			if(HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin)){ // efectivamente se solto el boton
+				FSMstate = BUTTON_UP;
+			} else { // fue ruido
+				FSMstate = BUTTON_DOWN;
+			}
 		}
 		break;
 	default:
