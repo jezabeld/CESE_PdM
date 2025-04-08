@@ -11,16 +11,18 @@
 #ifndef API_INC_API_UART_H_
 #define API_INC_API_UART_H_
 
-#include "API_delay.h"
+#include "stm32f4xx_hal.h"
 
 extern UART_HandleTypeDef huart2;
+
+#define N_RETRIES 3
 
 /**
  * @brief Inicializa la UART2.
  *
- * @return `true` si la inicialización se ha realizado con exito, en otro caso retorna `false`.
+ * @return `HAL_OK` si la inicialización se ha realizado con exito, en otro caso retorna `HAL_ERROR`.
  */
-bool_t uartInit();
+HAL_StatusTypeDef uartInit();
 
 /**
  * @brief Transmite un string por la UART.
@@ -29,8 +31,10 @@ bool_t uartInit();
  *
  * @param pstring puntero a un string completo (incluyendo el caracter ‘\0’).
  *  pstring no puede ser mayor que 2^16 caracteres.
+ *
+ * @return status final despues de los reintentos.
  */
-void uartSendString(char * pstring);
+HAL_StatusTypeDef uartSendString(char * pstring);
 
 /**
  * @brief Transmite un string por la UART hasta un determinado número de caracteres.
@@ -42,8 +46,10 @@ void uartSendString(char * pstring);
  *
  * @param size cantidad de caracteres de pstring a enviar.
  * 	size debe ser mayor a cero y no debe ser mayor que la cantidad de caracteres (incluyendo el caracter NULL) de pstring.
+ *
+ * @return status final despues de los reintentos.
  */
-void uartSendStringSize(char * pstring, uint16_t size);
+HAL_StatusTypeDef uartSendStringSize(char * pstring, uint16_t size);
 
 /**
  * @brief Recive un string por la UART.
@@ -55,9 +61,20 @@ void uartSendStringSize(char * pstring, uint16_t size);
  *
  * @param size cantidad de caracteres a recibir.
  * 	size debe ser mayor a cero y no debe ser mayor que la cantidad de caracteres (incluyendo el caracter NULL) de pstring.
+ *
+ * @return status final despues de los reintentos.
  */
-void uartReceiveStringSize(char * pstring, uint16_t size);
+HAL_StatusTypeDef uartReceiveStringSize(char * pstring, uint16_t size);
 
-void uartSendValue(int16_t * value);
+/**
+ * @brief Transmite un número por la UART.
+ *
+ * Si la transmisión falla, reintentará un total de veces definido en la macro N_RETRIES.
+ *
+ * @param value número entero de hasta 32 bits.
+ *
+ * @return status final despues de los reintentos.
+ */
+HAL_StatusTypeDef uartSendValue(int32_t value);
 
 #endif /* API_INC_API_DELAY_H_ */

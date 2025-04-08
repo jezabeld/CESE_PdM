@@ -166,36 +166,36 @@ int main(void)
 	  for(uint8_t i=0; i<5; i++){
 		  moveRight();
 		  uartSendString("Pos X: ");
-		  uartSendValue((int16_t *)&offsetX);
+		  uartSendValue((int32_t)&offsetX);
 		  uartSendString(", Pos Y: ");
-		  uartSendValue((int16_t *)&offsetY);
+		  uartSendValue((int32_t)&offsetY);
 		  uartSendString("\r\n");
 		  HAL_Delay(500);
 	  }
 	  for(uint8_t i=0; i<5; i++){
 		  moveForward();
 		  uartSendString("Pos X: ");
-		  uartSendValue((int16_t *)&offsetX);
+		  uartSendValue((int32_t)&offsetX);
 		  uartSendString(", Pos Y: ");
-		  uartSendValue((int16_t *)&offsetY);
+		  uartSendValue((int32_t)&offsetY);
 		  uartSendString("\r\n");
 		  HAL_Delay(500);
 	  }
 	  for(uint8_t i=0; i<5; i++){
 		  moveLeft();
 		  uartSendString("Pos X: ");
-		  uartSendValue((int16_t *)&offsetX);
+		  uartSendValue((int32_t)&offsetX);
 		  uartSendString(", Pos Y: ");
-		  uartSendValue((int16_t *)&offsetY);
+		  uartSendValue((int32_t)&offsetY);
 		  uartSendString("\r\n");
 		  HAL_Delay(500);
 	  }
 	  for(uint8_t i=0; i<5; i++){
 		  moveBackward();
 		  uartSendString("Pos X: ");
-		  uartSendValue((int16_t *)&offsetX);
+		  uartSendValue((int32_t)&offsetX);
 		  uartSendString(", Pos Y: ");
-		  uartSendValue((int16_t *)&offsetY);
+		  uartSendValue((int32_t)&offsetY);
 		  uartSendString("\r\n");
 		  HAL_Delay(500);
 	  }
