@@ -5,10 +5,7 @@
  *      Author: jez
  */
 
-#include <API_led_matrix.h>
-
-#define MATRIX_WIDTH 8
-#define MATRIX_HEIGHT 8
+#include "API_led_matrix.h"
 
 // Driver registers
 static const uint8_t REGISTER_DMODE = 0x09; // Decode mode: sets BCD code B (0-9, E, H, L, P, and -) or no-decode operation for each digit

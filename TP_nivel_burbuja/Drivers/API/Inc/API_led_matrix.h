@@ -10,6 +10,13 @@
 
 #include <API_led_matrix_port.h>
 
+#define MATRIX_WIDTH 8
+#define MATRIX_HEIGHT 8
+
+/**
+ * @typedef delay_t
+ * @brief Estructura de los retardos.
+ */
 typedef struct{
    GPIO_TypeDef * csPort;
    uint16_t csPin;
