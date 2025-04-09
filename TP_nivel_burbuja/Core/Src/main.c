@@ -61,8 +61,8 @@ extern UART_HandleTypeDef huart2;
 uint8_t DISPLAY[MATRIX_HEIGHT] = {0};
 
 // Posición del dot en la pantalla
-int offsetX = 3;
-int offsetY = 3;
+uint8_t offsetX = 3;
+uint8_t offsetY = 3;
 
 ledMatrix_t myMatrix;
 
@@ -140,14 +140,18 @@ int main(void)
   uartInit();
   ledMatrixInit(&myMatrix, &hspi1, GPIOB, GPIO_PIN_6);
 
-  HAL_Delay(200);
-
-    ledMatrixShutdown(&myMatrix, 0); // Wake up call
-
 
   	// graficar escena inicial
     ledMatrixRender(&myMatrix, smiley);
-    HAL_Delay(2500);
+
+    ledMatrixSetIntensity(&myMatrix, INTENSITY_HIGH);
+    HAL_Delay(500);
+    ledMatrixSetIntensity(&myMatrix, INTENSITY_MEDIUM);
+    HAL_Delay(500);
+    ledMatrixSetIntensity(&myMatrix, INTENSITY_LOW);
+
+
+    HAL_Delay(1500);
 
 
     // render posicion inicial
@@ -166,36 +170,36 @@ int main(void)
 	  for(uint8_t i=0; i<5; i++){
 		  moveRight();
 		  uartSendString("Pos X: ");
-		  uartSendValue((int32_t)&offsetX);
+		  uartSendValue(offsetX);
 		  uartSendString(", Pos Y: ");
-		  uartSendValue((int32_t)&offsetY);
+		  uartSendValue(offsetY);
 		  uartSendString("\r\n");
 		  HAL_Delay(500);
 	  }
 	  for(uint8_t i=0; i<5; i++){
 		  moveForward();
 		  uartSendString("Pos X: ");
-		  uartSendValue((int32_t)&offsetX);
+		  uartSendValue(offsetX);
 		  uartSendString(", Pos Y: ");
-		  uartSendValue((int32_t)&offsetY);
+		  uartSendValue(offsetY);
 		  uartSendString("\r\n");
 		  HAL_Delay(500);
 	  }
 	  for(uint8_t i=0; i<5; i++){
 		  moveLeft();
 		  uartSendString("Pos X: ");
-		  uartSendValue((int32_t)&offsetX);
+		  uartSendValue(offsetX);
 		  uartSendString(", Pos Y: ");
-		  uartSendValue((int32_t)&offsetY);
+		  uartSendValue(offsetY);
 		  uartSendString("\r\n");
 		  HAL_Delay(500);
 	  }
 	  for(uint8_t i=0; i<5; i++){
 		  moveBackward();
 		  uartSendString("Pos X: ");
-		  uartSendValue((int32_t)&offsetX);
+		  uartSendValue(offsetX);
 		  uartSendString(", Pos Y: ");
-		  uartSendValue((int32_t)&offsetY);
+		  uartSendValue(offsetY);
 		  uartSendString("\r\n");
 		  HAL_Delay(500);
 	  }
