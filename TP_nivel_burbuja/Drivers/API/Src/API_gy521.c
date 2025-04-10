@@ -7,15 +7,44 @@
 
 #include <API_gy521.h>
 
+typedef struct {
+    int16_t xOffset;
+    int16_t yOffset;
+    int16_t zOffset;
+} accelOffset_t;
+
+static accelOffset_t calibrationOffsets;
+
+// Registros internos del GY-521
+static const uint8_t REG_WHO_AM_I = 0x75;
+static const uint8_t REG_CONFIG = 0x1A;
+static const uint8_t REG_GYRO_CONFIG = 0x1B;
+static const uint8_t REG_ACCEL_CONFIG = 0x1C;
+static const uint8_t REG_ACCEL_CONFIG_2 = 0x1D;
+static const uint8_t REG_LPA_ODR = 0x1E;
+static const uint8_t REG_PWR_MGMT_1 = 0x6B;
+static const uint8_t REG_PWR_MGMT_2 = 0x6C;
+static const uint8_t REG_ACCEL_XOUT_H = 0x3B; // Registers 0x3B to 0x40 – Accelerometer Measurements
+
+static const uint8_t DEV_ID = 0x70; // device ID for MPU-6500
+static const uint8_t CALIBRATION_SAMPLES = 100;
+
+
 #define PWR_MGMT 0x00
-#define DEVICE_RESET 0x01
-#define CYCLE (1<<2)
-#define TEMP_DIS (1<<4) // disable temp sensor
+#define DEVICE_RESET (1<<7)
+#define CYCLE (1<<5)
+#define TEMP_DIS (1<<3) // disable temp sensor
 #define CLKSEL_INTERNAL 0
-#define GYRO_OFF (7<<5)
-#define LP_WAKE_CTRL 3 // freq for wake-up and sample
+#define CLSEL_AUTO 1
+#define GYRO_OFF 7
+#define ACCEL_OFF (7<<3)
+#define LP_WAKE_CTRL (3<<6) // freq for wake-up and sample
 #define READ1BYTE 1
 #define READ6BYTES 6
+// axis self tests
+#define ACC_ST 7
+#define ACC_DLPF 2
+#define _1G 16384
 // accelerometer values offset in register read
 #define ACC_XH 0
 #define ACC_XL 1
@@ -24,29 +53,11 @@
 #define ACC_ZH 4
 #define ACC_ZL 5
 
+static void calibrateAccel(gyro_t * gyro, accelOffset_t * offset);
 
-// Registros internos del GY-521
-static const uint8_t REG_WHO_AM_I = 0x75;
-static const uint8_t REG_CONFIG = 0x1A;
-static const uint8_t REG_GYRO_CONFIG = 0x1B;
-static const uint8_t REG_ACCEL_CONFIG = 0x1C;
-static const uint8_t REG_PWR_MGMT_1 = 0x6B;
-static const uint8_t REG_PWR_MGMT_2 = 0x6C;
-static const uint8_t REG_ACCEL_XOUT_H = 0x3B; // Registers 0x3B to 0x40 – Accelerometer Measurements
-
-static const uint8_t DEV_ID = 0x70; // device ID for MPU-6500
-
-
-bool_t gyroInit(gyro_t * gyro, I2C_HandleTypeDef * hi2c, uint8_t devAddress){
+bool_t gyroInit(gyro_t * gyro, I2C_HandleTypeDef * hi2c, uint8_t devAddress, gyroPowerModes_t mode){
 	gyro->hi2c = hi2c;
 	gyro->devAddress = devAddress;
-
-	// set power management: Low-Power Accelerometer Mode
-	uint8_t pwrMgmt = PWR_MGMT + TEMP_DIS + CYCLE + CLKSEL_INTERNAL;
-	writeRegister(gyro->hi2c, gyro->devAddress, &pwrMgmt, REG_PWR_MGMT_1);
-
-	pwrMgmt = PWR_MGMT + GYRO_OFF + LP_WAKE_CTRL;
-	writeRegister(gyro->hi2c, gyro->devAddress, &pwrMgmt, REG_PWR_MGMT_2);
 
 	// test connection
 	uint8_t check;
@@ -54,6 +65,41 @@ bool_t gyroInit(gyro_t * gyro, I2C_HandleTypeDef * hi2c, uint8_t devAddress){
 	if (check != DEV_ID){
 		return false;
 	}
+
+	uint8_t pwrMgmt;
+
+	switch(mode){
+	case LOW_POWER_ACC_MODE:
+		// set power management: Low-Power Accelerometer Mode
+		pwrMgmt = PWR_MGMT + TEMP_DIS + CYCLE + CLKSEL_INTERNAL;
+		writeRegister(gyro->hi2c, gyro->devAddress, &pwrMgmt, REG_PWR_MGMT_1);
+
+		pwrMgmt = PWR_MGMT + GYRO_OFF + LP_WAKE_CTRL;
+		writeRegister(gyro->hi2c, gyro->devAddress, &pwrMgmt, REG_PWR_MGMT_2);
+
+		pwrMgmt = PWR_MGMT;
+		writeRegister(gyro->hi2c, gyro->devAddress, &pwrMgmt, REG_LPA_ODR);
+		break;
+	case LOW_NOISE_ACC_MODE:
+		pwrMgmt = PWR_MGMT + TEMP_DIS + CLKSEL_INTERNAL;
+		writeRegister(gyro->hi2c, gyro->devAddress, &pwrMgmt, REG_PWR_MGMT_1);
+
+		pwrMgmt = PWR_MGMT + GYRO_OFF;
+		writeRegister(gyro->hi2c, gyro->devAddress, &pwrMgmt, REG_PWR_MGMT_2);
+
+		pwrMgmt = PWR_MGMT;
+		writeRegister(gyro->hi2c, gyro->devAddress, &pwrMgmt, REG_ACCEL_CONFIG);
+
+		pwrMgmt = PWR_MGMT + ACC_DLPF;
+		writeRegister(gyro->hi2c, gyro->devAddress, &pwrMgmt, REG_ACCEL_CONFIG_2);
+
+		break;
+	default:
+
+	}
+
+	calibrateAccel(gyro, &calibrationOffsets);
+
 	return true;
 }
 
@@ -63,4 +109,26 @@ void gyroReadAccel(gyro_t * gyro, int16_t * accX, int16_t * accY, int16_t * accZ
 	*accX = (int16_t)((values[ACC_XH]<<8) | (values[ACC_XL]));
 	*accY = (int16_t)((values[ACC_YH]<<8) | (values[ACC_YL]));
 	*accZ = (int16_t)((values[ACC_ZH]<<8) | (values[ACC_ZL]));
+	if(calibrationOffsets.xOffset){
+		*accX -= calibrationOffsets.xOffset;
+		*accY -= calibrationOffsets.yOffset;
+		*accZ -= calibrationOffsets.zOffset;
+	}
+}
+
+static void calibrateAccel(gyro_t * gyro, accelOffset_t * offset){
+    int32_t sum_x = 0, sum_y = 0, sum_z = 0;
+    int16_t accX, accY, accZ;
+
+    for (int i = 0; i < CALIBRATION_SAMPLES; i++) {
+        gyroReadAccel(gyro, &accX, &accY, &accZ);
+        sum_x += accX;
+        sum_y += accY;
+        sum_z += accZ;
+        HAL_Delay(5);
+    }
+
+    offset->xOffset = sum_x / CALIBRATION_SAMPLES;
+    offset->yOffset = sum_y / CALIBRATION_SAMPLES;
+    offset->yOffset = (sum_z / CALIBRATION_SAMPLES) - _1G; // 1g en ±2g
 }

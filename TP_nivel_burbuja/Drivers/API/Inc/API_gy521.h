@@ -16,7 +16,17 @@ typedef struct{
    uint8_t devAddress;
 } gyro_t;
 
-bool_t gyroInit(gyro_t * gyro, I2C_HandleTypeDef * hi2c, uint8_t devAddress);
+typedef enum
+{
+//	SLEEP_MODE 	= 1,
+//	STANDBY_MODE,
+	LOW_POWER_ACC_MODE,
+	LOW_NOISE_ACC_MODE,
+//	GYR_MODE,
+//	FULL_MODE,
+} gyroPowerModes_t;
+
+bool_t gyroInit(gyro_t * gyro, I2C_HandleTypeDef * hi2c, uint8_t devAddress, gyroPowerModes_t mode);
 
 void gyroReadAccel(gyro_t * gyro, int16_t * accX, int16_t * accY, int16_t * accZ);
 

@@ -89,18 +89,23 @@ HAL_StatusTypeDef uartSendValue(int32_t value){
 
 void intToStr(int32_t num, char* str){
 	uint8_t i = 0;
+	uint8_t neg = 0;
 
 	if (num == 0) {
 		str[i++] = '0';
 	}
 	if(num < 0){
-		str[i++] = '-';
+		//str[i++] = '-';
+		neg = 1;
 		num = num * (-1);
 	}
 	while (num > 0) {
 		str[i++] = (num % 10) + '0';
 		num /= 10;
 	}
+	if(neg){
+			str[i++] = '-';
+		}
 	str[i] = '\0';
 
 	// Invertir el string
@@ -109,4 +114,5 @@ void intToStr(int32_t num, char* str){
 		str[j] = str[i - j - 1];
 		str[i - j - 1] = temp;
 	}
+
 }
