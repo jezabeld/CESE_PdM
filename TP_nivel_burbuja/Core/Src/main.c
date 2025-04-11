@@ -21,11 +21,13 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "string.h"
+#include "API_debounce.h"
 #include "API_delay.h"
 #include "API_uart.h"
 #include "API_gy521.h"
 #include "API_led_matrix.h"
+#include "math.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -54,7 +56,8 @@ extern UART_HandleTypeDef huart2;
 // Dimensiones de la matriz LED
 #define MATRIX_WIDTH 8
 #define MATRIX_HEIGHT 8
-
+#define MOVEMENT_SENSIBILITY 2.0
+#define TIEMPO_RENDER 500
 #define DOT_SIZE 1
 
 // Matriz buffer de pantalla
@@ -65,6 +68,10 @@ uint8_t offsetX = 3;
 uint8_t offsetY = 3;
 
 ledMatrix_t myMatrix;
+gyro_t myGyro;
+const uint8_t gyroAddress = 0x68;
+bool_t gyroStatus;
+int16_t accelX, accelY, accelZ;
 
 /* USER CODE END PV */
 
@@ -76,6 +83,10 @@ static void MX_SPI1_Init(void);
 static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
 
+void mapAccelToPosition(int16_t accX, int16_t accY, uint8_t * posX, uint8_t * posY);
+int32_t capValue(int32_t value, int32_t min, int32_t max);
+int32_t mapValues(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh);
+int32_t mapTanH(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -137,18 +148,21 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   /* MAIN USER CODE ***********************************************************/
-  uartInit();
-  ledMatrixInit(&myMatrix, &hspi1, GPIOB, GPIO_PIN_6);
+	uartInit();
+	gyroStatus = gyroInit(&myGyro, &hi2c1, gyroAddress, LOW_NOISE_ACC_MODE);
+	ledMatrixInit(&myMatrix, &hspi1, GPIOB, GPIO_PIN_6);
+
+	//
+	buttonChange_t btnChange;
+	debounceFSM_init();
+
+	//
+	delay_t myDelay;
+    delayInit(&myDelay, TIEMPO_RENDER);
 
 
   	// graficar escena inicial
     ledMatrixRender(&myMatrix, smiley);
-
-    ledMatrixSetIntensity(&myMatrix, INTENSITY_HIGH);
-    HAL_Delay(500);
-    ledMatrixSetIntensity(&myMatrix, INTENSITY_MEDIUM);
-    HAL_Delay(500);
-    ledMatrixSetIntensity(&myMatrix, INTENSITY_LOW);
 
 
     HAL_Delay(1500);
@@ -156,8 +170,9 @@ int main(void)
 
     // render posicion inicial
     drawMatrix();
+    uartSendString(gyroStatus ? "Connected\r\n" : "Not connected\r\n");
 
-    HAL_Delay(500);
+    //HAL_Delay(500);
 
   /* USER CODE END 2 */
 
@@ -165,9 +180,39 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  uartSendString("Starting...\r\n");
+	  btnChange = debounceFSM_update();
+
+	  if(btnChange == BUTTON_PRESSED){
+		  uartSendString("Flanco descendente detectado\r\n");
+		  moveRight();
+	  }
+	  if(btnChange == BUTTON_RELEASED){
+		  uartSendString("Flanco ascendente detectado\r\n");
+		  moveLeft();
+	  }
+
+	  if(delayRead(&myDelay)){
+		  uartSendString("Starting...\r\n");
+		  gyroReadAccel(&myGyro, &accelX, &accelY, &accelZ);
+		  mapAccelToPosition(accelX, accelY, &offsetX, &offsetY);
+		  uartSendString("Acc X: ");
+		  uartSendValue(accelX);
+		  uartSendString(", Acc Y: ");
+		  uartSendValue(accelY);
+		  uartSendString(", Acc Z: ");
+		  uartSendValue(accelZ);
+		  uartSendString(", pos X: ");
+		  uartSendValue(offsetX);
+		  uartSendString(", pos Y: ");
+		  uartSendValue(offsetY);
+		  uartSendString("\r\n");
+		  drawMatrix();
+	  }
+
+	  //HAL_Delay(200);
+
 	  // Simulación de movimiento
-	  for(uint8_t i=0; i<5; i++){
+	  /*for(uint8_t i=0; i<5; i++){
 		  moveRight();
 		  uartSendString("Pos X: ");
 		  uartSendValue(offsetX);
@@ -202,7 +247,7 @@ int main(void)
 		  uartSendValue(offsetY);
 		  uartSendString("\r\n");
 		  HAL_Delay(500);
-	  }
+	  }*/
 
     /* USER CODE END WHILE */
 
@@ -415,22 +460,43 @@ void moveLeft(void) {
     offsetX = (offsetX - 1 + MATRIX_WIDTH) % MATRIX_WIDTH;
     drawMatrix();
 }
-
 void moveRight(void) {
     offsetX = (offsetX + 1 + MATRIX_WIDTH) % MATRIX_WIDTH;
     drawMatrix();
-}
-
+}/*
 void moveForward(void) {
     offsetY = (offsetY + 1 + MATRIX_HEIGHT) % MATRIX_HEIGHT;
     drawMatrix();
 }
-
 void moveBackward(void) {
     offsetY = (offsetY - 1 + MATRIX_HEIGHT) % MATRIX_HEIGHT;
     drawMatrix();
+}*/
+
+// map acelerometro a matriz de leds
+void mapAccelToPosition(int16_t accX, int16_t accY, uint8_t * posX, uint8_t * posY){
+	accX = capValue(accX, -_1G, _1G);
+	accY = capValue(accY, -_1G, _1G);
+	// mapeo lineal
+	// *posY = mapValues(accX, -_1G, _1G, 0, MATRIX_WIDTH-1);
+	// *posX = mapValues(accY, -_1G, _1G, 0, MATRIX_HEIGHT-1);
+	// mapeo con tangente hiperbolica
+	*posY = mapTanH(accX, -_1G, _1G, 0, MATRIX_WIDTH);
+	*posX = mapTanH(accY, -_1G, _1G, 0, MATRIX_HEIGHT);
 }
 
+int32_t capValue(int32_t value, int32_t min, int32_t max){
+	return (value > max)? max : ((value < min)? min : value);
+}
+int32_t mapValues(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh){
+	return (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow) + toLow;
+}
+int32_t mapTanH(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh){
+	double norm = (double)value / fromHigh; // -1.0 a 1.0
+	double curved = (tanh(norm * MOVEMENT_SENSIBILITY) + 1.0) / 2.0; // 0.0 a 1.0
+	int32_t output = (int32_t)(curved * (toHigh - toLow) + toLow);
+	return output;
+}
 /*************************************************************************************************************************/
 /* USER CODE END 4 */
 

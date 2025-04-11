@@ -6,16 +6,9 @@
  */
 
 #include <API_gy521.h>
+#include "assert.h"
 
-typedef struct {
-    int16_t xOffset;
-    int16_t yOffset;
-    int16_t zOffset;
-} accelOffset_t;
-
-static accelOffset_t calibrationOffsets;
-
-// Registros internos del GY-521
+// Registros internos del GY-521/MPU-6500
 static const uint8_t REG_WHO_AM_I = 0x75;
 static const uint8_t REG_CONFIG = 0x1A;
 static const uint8_t REG_GYRO_CONFIG = 0x1B;
@@ -29,7 +22,7 @@ static const uint8_t REG_ACCEL_XOUT_H = 0x3B; // Registers 0x3B to 0x40 – Acce
 static const uint8_t DEV_ID = 0x70; // device ID for MPU-6500
 static const uint8_t CALIBRATION_SAMPLES = 100;
 
-
+// Valores de control
 #define PWR_MGMT 0x00
 #define DEVICE_RESET (1<<7)
 #define CYCLE (1<<5)
@@ -53,17 +46,30 @@ static const uint8_t CALIBRATION_SAMPLES = 100;
 #define ACC_ZH 4
 #define ACC_ZL 5
 
-static void calibrateAccel(gyro_t * gyro, accelOffset_t * offset);
+/**
+ * @brief Calibra los 3 ejes del acelerómetro acorde a la posición original.
+ *
+ * @param gyro Estructura del dispostivo (debe haber sido previamente inicializado).
+ */
+static void calibrateAccel(gyro_t * gyro);
 
-bool_t gyroInit(gyro_t * gyro, I2C_HandleTypeDef * hi2c, uint8_t devAddress, gyroPowerModes_t mode){
+initStatus_t gyroInit(gyro_t * gyro, I2C_HandleTypeDef * hi2c, uint8_t devAddress, gyroPowerModes_t mode){
+	assert(gyro);
+	assert(hi2c);
+	assert_param(devAddress); // check if address is 0
+
 	gyro->hi2c = hi2c;
 	gyro->devAddress = devAddress;
+	gyro->calX = 0;
+	gyro->calY = 0;
+	gyro->calZ = 0;
+
 
 	// test connection
 	uint8_t check;
 	readRegister(gyro->hi2c, gyro->devAddress, &check, REG_WHO_AM_I, READ1BYTE);
 	if (check != DEV_ID){
-		return false;
+		return INIT_ERROR;
 	}
 
 	uint8_t pwrMgmt;
@@ -98,26 +104,27 @@ bool_t gyroInit(gyro_t * gyro, I2C_HandleTypeDef * hi2c, uint8_t devAddress, gyr
 
 	}
 
-	calibrateAccel(gyro, &calibrationOffsets);
+	calibrateAccel(gyro);
 
-	return true;
+	return INIT_OK;
 }
 
 void gyroReadAccel(gyro_t * gyro, int16_t * accX, int16_t * accY, int16_t * accZ){
+	assert(gyro);
+	assert(gyro->hi2c); // verifica que la estructura fue inicializada
+
 	uint8_t values[READ6BYTES];
 	readRegister(gyro->hi2c, gyro->devAddress, values, REG_ACCEL_XOUT_H, READ6BYTES);
-	*accX = (int16_t)((values[ACC_XH]<<8) | (values[ACC_XL]));
-	*accY = (int16_t)((values[ACC_YH]<<8) | (values[ACC_YL]));
-	*accZ = (int16_t)((values[ACC_ZH]<<8) | (values[ACC_ZL]));
-	if(calibrationOffsets.xOffset){
-		*accX -= calibrationOffsets.xOffset;
-		*accY -= calibrationOffsets.yOffset;
-		*accZ -= calibrationOffsets.zOffset;
-	}
+	*accX = (int16_t)((values[ACC_XH]<<8) | (values[ACC_XL])) - gyro->calX;
+	*accY = (int16_t)((values[ACC_YH]<<8) | (values[ACC_YL])) - gyro->calY;
+	*accZ = (int16_t)((values[ACC_ZH]<<8) | (values[ACC_ZL])) - gyro->calZ;
 }
 
-static void calibrateAccel(gyro_t * gyro, accelOffset_t * offset){
-    int32_t sum_x = 0, sum_y = 0, sum_z = 0;
+static void calibrateAccel(gyro_t * gyro){
+	assert(gyro);
+	assert(gyro->hi2c); // verifica que la estructura fue inicializada
+
+	int32_t sum_x = 0, sum_y = 0, sum_z = 0;
     int16_t accX, accY, accZ;
 
     for (int i = 0; i < CALIBRATION_SAMPLES; i++) {
@@ -125,10 +132,10 @@ static void calibrateAccel(gyro_t * gyro, accelOffset_t * offset){
         sum_x += accX;
         sum_y += accY;
         sum_z += accZ;
-        HAL_Delay(5);
+        HAL_Delay(10);
     }
 
-    offset->xOffset = sum_x / CALIBRATION_SAMPLES;
-    offset->yOffset = sum_y / CALIBRATION_SAMPLES;
-    offset->yOffset = (sum_z / CALIBRATION_SAMPLES) - _1G; // 1g en ±2g
+    gyro->calX = sum_x / CALIBRATION_SAMPLES;
+    gyro->calY = sum_y / CALIBRATION_SAMPLES;
+    gyro->calZ = (sum_z / CALIBRATION_SAMPLES) - _1G; // 1g en ±2g
 }
