@@ -1,15 +1,16 @@
 /*
- * gy521_port.c
+ * @file GY521_port.c
+ * @brief Device driver para el acelerómetro del módulo GY-521 con controlador MPU-6500.
  *
- *  Created on: Apr 6, 2025
- *      Author: jez
+ * Creado como parte del Trabajo Práctico final de las materias `Protocolos de
+ * 	Comunicación en Sistemas embebidos` y `Programación de Microcontroladores`.
+ *
+ * @author  Jez
+ * @date Apr 6, 2025
  */
 
-#include <GY521_port.h>
+#include "GY521_port.h"
 
-/*void sendCommand(I2C_HandleTypeDef * hi2c, uint8_t devAddress, uint8_t value){
-	HAL_I2C_Master_Transmit(hi2c, devAddress<<1, &value, sizeof(value),HAL_MAX_DELAY);
-}*/
 
 void readRegister(I2C_HandleTypeDef * hi2c, uint8_t devAddress, uint8_t * data, uint8_t regAddress, uint8_t sizeRead){
 	HAL_I2C_Mem_Read(hi2c, devAddress<<1, regAddress, 1, data, sizeRead, HAL_MAX_DELAY);
