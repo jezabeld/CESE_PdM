@@ -12,7 +12,7 @@
 #ifndef API_INC_API_LED_MATRIX_H_
 #define API_INC_API_LED_MATRIX_H_
 
-#include "API_led_matrix_port.h"
+#include "ledMatrix_port.h"
 
 #define MATRIX_WIDTH 8
 #define MATRIX_HEIGHT 8
@@ -38,6 +38,14 @@ typedef enum
 } ledIntensity_t;
 
 /**
+  * @brief  Estados de la matriz.
+  */
+typedef enum{
+	MATRIX_ERROR,
+	MATRIX_OK,
+} matrixStatus_t;
+
+/**
  * @brief Inicializador de la matriz a controlar.
  *
  * @param ledMatrix Estructura de datos de la matriz.
@@ -45,7 +53,7 @@ typedef enum
  * @param csPort Puerto del pin utilizado como CS.
  * @param csPin Número de pin utilizado como CS.
  */
-void ledMatrixInit(ledMatrix_t * ledMatrix, SPI_HandleTypeDef * hSpi, GPIO_TypeDef * csPort, uint16_t csPin);
+matrixStatus_t ledMatrixInit(ledMatrix_t * ledMatrix, SPI_HandleTypeDef * hSpi, GPIO_TypeDef * csPort, uint16_t csPin);
 
 /**
  * @brief Setea el nivel de intensidad o brillo de los LEDs de la matriz.
@@ -79,6 +87,6 @@ void ledMatrixClear(ledMatrix_t * ledMatrix);
  * @param screen Puntero al buffer de pantalla. Debe ser un array de 8 elementos cada
  * 			uno correspondiendo a una columna de la matriz.
  */
-void ledMatrixRender(ledMatrix_t * ledMatrix, uint8_t * screen);
+void ledMatrixRender(ledMatrix_t * ledMatrix, const uint8_t * screen);
 
 #endif /* API_INC_API_LED_MATRIX_H_ */

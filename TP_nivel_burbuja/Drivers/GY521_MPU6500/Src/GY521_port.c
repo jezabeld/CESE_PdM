@@ -5,11 +5,7 @@
  *      Author: jez
  */
 
-#include <API_gy521_port.h>
-
-
-
-
+#include <GY521_port.h>
 
 /*void sendCommand(I2C_HandleTypeDef * hi2c, uint8_t devAddress, uint8_t value){
 	HAL_I2C_Master_Transmit(hi2c, devAddress<<1, &value, sizeof(value),HAL_MAX_DELAY);

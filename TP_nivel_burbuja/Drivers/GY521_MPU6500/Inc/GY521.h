@@ -8,7 +8,7 @@
 #ifndef API_INC_API_GY521_H_
 #define API_INC_API_GY521_H_
 
-#include <API_gy521_port.h>
+#include <GY521_port.h>
 
 #define _1G 16384
 #define _2G 32768

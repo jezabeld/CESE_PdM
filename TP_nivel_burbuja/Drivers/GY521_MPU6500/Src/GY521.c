@@ -5,8 +5,9 @@
  *      Author: jez
  */
 
-#include <API_gy521.h>
+#include <GY521.h>
 #include "assert.h"
+#include "API_uart.h"
 
 // Registros internos del GY-521/MPU-6500
 static const uint8_t REG_WHO_AM_I = 0x75;
@@ -34,6 +35,7 @@ static const uint8_t CALIBRATION_SAMPLES = 100;
 #define LP_WAKE_CTRL (3<<6) // freq for wake-up and sample
 #define READ1BYTE 1
 #define READ6BYTES 6
+
 // axis self tests
 #define ACC_ST 7
 #define ACC_DLPF 2
@@ -64,13 +66,10 @@ initStatus_t gyroInit(gyro_t * gyro, I2C_HandleTypeDef * hi2c, uint8_t devAddres
 	gyro->calY = 0;
 	gyro->calZ = 0;
 
-
 	// test connection
 	uint8_t check;
 	readRegister(gyro->hi2c, gyro->devAddress, &check, REG_WHO_AM_I, READ1BYTE);
-	if (check != DEV_ID){
-		return INIT_ERROR;
-	}
+	if(check != DEV_ID) return INIT_ERROR;
 
 	uint8_t pwrMgmt;
 

@@ -9,8 +9,8 @@
  * @date Mar 25, 2025
  */
 
-#include "API_led_matrix.h"
 #include "assert.h"
+#include "ledMatrix.h"
 
 // Driver registers
 static const uint8_t REGISTER_DMODE = 0x09; // Decode mode: sets BCD code B (0-9, E, H, L, P, and -) or no-decode operation for each digit
@@ -26,7 +26,7 @@ static const uint8_t SD_DISPLAY_OFF = 0x00;
 static const uint8_t SD_DISPLAY_ON = 0x01;
 static const uint8_t CLEAR_COL = 0x00;
 
-void ledMatrixInit(ledMatrix_t * ledMatrix, SPI_HandleTypeDef * hSpi, GPIO_TypeDef * csPort, uint16_t csPin){
+matrixStatus_t ledMatrixInit(ledMatrix_t * ledMatrix, SPI_HandleTypeDef * hSpi, GPIO_TypeDef * csPort, uint16_t csPin){
 	assert(ledMatrix);
 	assert(hSpi);
 	assert(csPort);
@@ -44,6 +44,7 @@ void ledMatrixInit(ledMatrix_t * ledMatrix, SPI_HandleTypeDef * hSpi, GPIO_TypeD
 
 	sendCommand(ledMatrix->hSpi, ledMatrix->csPort, ledMatrix->csPin, REGISTER_INTENSITY, INTENSITY_LOW);
 	ledMatrixShutdown(ledMatrix, 0);
+	return MATRIX_OK;
 }
 
 void ledMatrixShutdown(ledMatrix_t * ledMatrix, uint8_t sd){
@@ -61,7 +62,7 @@ void ledMatrixClear(ledMatrix_t * ledMatrix){
 	}
 }
 
-void ledMatrixRender(ledMatrix_t * ledMatrix, uint8_t * screen){
+void ledMatrixRender(ledMatrix_t * ledMatrix, const uint8_t * screen){
 	assert(ledMatrix);
 	assert(ledMatrix->hSpi); // verifica que la estructura fue inicializada
 	assert_param(sizeof(screen) == MATRIX_WIDTH); // screen es un array de columnas
