@@ -1,5 +1,5 @@
 /**
- * @file API_led_matrix.h
+ * @file ledMatrix.h
  * @brief Device Driver para matriz de LEDs de 8x8 con controlador MAX7219.
  *
  * Creado como parte del Trabajo Práctico final de las materias `Protocolos de
@@ -28,7 +28,7 @@ typedef struct{
 } ledMatrix_t;
 
 /**
-  * @brief  Intensidad de los LEDs de la matriz.
+  * @brief Intensidad de los LEDs de la matriz.
   */
 typedef enum
 {
@@ -38,7 +38,7 @@ typedef enum
 } ledIntensity_t;
 
 /**
-  * @brief  Estados de la matriz.
+  * @brief Estados de la matriz.
   */
 typedef enum{
 	MATRIX_ERROR,
@@ -48,45 +48,56 @@ typedef enum{
 /**
  * @brief Inicializador de la matriz a controlar.
  *
- * @param ledMatrix Estructura de datos de la matriz.
- * @param hspi Handler de SPI a utilizar para la comunicación.
- * @param csPort Puerto del pin utilizado como CS.
+ * Setea el pin definido como Chip Select en HIGH y configura la matriz de leds mediante los registros internos
+ * del controlador MAX7219.
+ *
+ * @param[in,out] ledMatrix Estructura de datos de la matriz.
+ * @param[in] hspi Handler de SPI a utilizar para la comunicación.
+ * @param[in] csPort Puerto del pin utilizado como CS.
  * @param csPin Número de pin utilizado como CS.
+ * @return `MATRIX_OK` si la comunicación se estableció correctamente, `MATRIX_ERROR` en caso contrario.
  */
 matrixStatus_t ledMatrixInit(ledMatrix_t * ledMatrix, SPI_HandleTypeDef * hSpi, GPIO_TypeDef * csPort, uint16_t csPin);
 
 /**
  * @brief Setea el nivel de intensidad o brillo de los LEDs de la matriz.
  *
- * @param ledMatrix Estructura de datos de la matriz (debe haber sido inicializada previamente).
- * @param intensity Nivel de intensidad a setear.
+ * @param[in] ledMatrix Estructura de datos de la matriz (debe haber sido inicializada previamente).
+ * @param intensity Nivel de intensidad a setear. Los niveles de intensidad permitidos se encuentran definidos en el enum `ledIntensity_t`.
+ * @return `MATRIX_OK` si el comando se envió correctamente por SPI, `MATRIX_ERROR` en caso contrario.
  */
-void ledMatrixSetIntensity(ledMatrix_t * ledMatrix, ledIntensity_t intensity);
+matrixStatus_t ledMatrixSetIntensity(ledMatrix_t * ledMatrix, ledIntensity_t intensity);
 
 
 /**
- * @brief Habilita o dehabilita el modo SHUTDOWN de la matriz.
+ * @brief Habilita o deshabilita el modo SHUTDOWN de la matriz.
  *
- * @param ledMatrix Estructura de datos de la matriz (debe haber sido inicializada previamente).
- * @param sd `0` para deshabilitar el modo SHUTDOWN, `1` para habilitarlo.
- * 			Ningún otro valor es admitido.
+ * En el modo SHUTDOWN todos los leds se mantienen encendidos y los registros internos del MAX7219 se mantienen inalterados.
+ * Este modo puede utilizarse para ahorrar energía o como modo de alarma haciendo parpadear todos los leds entrando y saliendo
+ * sucesivamente del modo SD.
+ * Durante SHUTDOWN la matriz puede programarse normalmente.
+ *
+ * @param[in] ledMatrix Estructura de datos de la matriz (debe haber sido inicializada previamente).
+ * @param sd `0` para deshabilitar el modo SHUTDOWN, `1` para habilitarlo. Ningún otro valor es admitido.
+ * @return `MATRIX_OK` si el comando se envió correctamente por SPI, `MATRIX_ERROR` en caso contrario.
  */
-void ledMatrixShutdown(ledMatrix_t * ledMatrix, uint8_t sd);
+matrixStatus_t ledMatrixShutdown(ledMatrix_t * ledMatrix, uint8_t sd);
 
 /**
  * @brief Limpia la matriz (apaga todos los leds).
  *
- * @param ledMatrix Estructura de datos de la matriz (debe haber sido inicializada previamente).
+ * @param[in] ledMatrix Estructura de datos de la matriz (debe haber sido inicializada previamente).dispositivo
+ * @return `MATRIX_OK` si el comando se envió correctamente por SPI, `MATRIX_ERROR` en caso contrario.
  */
-void ledMatrixClear(ledMatrix_t * ledMatrix);
+matrixStatus_t ledMatrixClear(ledMatrix_t * ledMatrix);
 
 /**
- * @brief Renderiza en la matriz la iformación del buffer de pantalla.
+ * @brief Renderiza en la matriz la información del buffer de pantalla.
  *
- * @param ledMatrix Estructura de datos de la matriz (debe haber sido inicializada previamente).
- * @param screen Puntero al buffer de pantalla. Debe ser un array de 8 elementos cada
- * 			uno correspondiendo a una columna de la matriz.
+ * @param[in] ledMatrix Estructura de datos de la matriz (debe haber sido inicializada previamente).
+ * @param[in] screen Puntero al buffer de pantalla. Debe ser un array de 8 elementos cada uno correspondiendo a una columna de la matriz.
+ * @return `MATRIX_OK` si el comando se envió correctamente por SPI, `MATRIX_ERROR` en caso contrario.
  */
-void ledMatrixRender(ledMatrix_t * ledMatrix, const uint8_t * screen);
+matrixStatus_t ledMatrixRender(ledMatrix_t * ledMatrix, const uint8_t * screen);
 
 #endif /* API_INC_API_LED_MATRIX_H_ */
