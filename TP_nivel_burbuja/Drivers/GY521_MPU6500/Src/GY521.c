@@ -56,7 +56,7 @@ static const uint8_t MIN_MEASURE_TIME = 10; ///< Min time in millisecs between c
  */
 static void calibrateAccel(gyro_t * gyro);
 
-initStatus_t gyroInit(gyro_t * gyro, I2C_HandleTypeDef * hi2c, uint8_t devAddress, gyroPowerModes_t mode){
+gyroStatus_t gyroInit(gyro_t * gyro, I2C_HandleTypeDef * hi2c, uint8_t devAddress, gyroPowerModes_t mode){
 	assert(gyro);
 	assert(hi2c);
 	assert_param(devAddress); ///< check address is not 0
@@ -68,9 +68,10 @@ initStatus_t gyroInit(gyro_t * gyro, I2C_HandleTypeDef * hi2c, uint8_t devAddres
 	gyro->calZ = 0;
 
 	// test connection
+	bool status; ///< variable de estatus de comunicacion
 	uint8_t check;
-	readRegister(gyro->hi2c, gyro->devAddress, &check, REG_WHO_AM_I, READ1BYTE);
-	if(check != DEV_ID) return INIT_ERROR;
+	status = readRegister(gyro->hi2c, gyro->devAddress, &check, REG_WHO_AM_I, READ1BYTE);
+	if(status || (check != DEV_ID)) return GYRO_ERROR;
 
 	// set power management
 	uint8_t pwrMgmt;
@@ -78,49 +79,51 @@ initStatus_t gyroInit(gyro_t * gyro, I2C_HandleTypeDef * hi2c, uint8_t devAddres
 	switch(mode){
 	case LOW_POWER_ACC_MODE:
 		pwrMgmt = PWR_MGMT + TEMP_DIS + CYCLE + CLKSEL_INTERNAL;
-		writeRegister(gyro->hi2c, gyro->devAddress, &pwrMgmt, REG_PWR_MGMT_1);
+		status |= writeRegister(gyro->hi2c, gyro->devAddress, &pwrMgmt, REG_PWR_MGMT_1);
 
 		pwrMgmt = PWR_MGMT + GYRO_OFF + LP_WAKE_CTRL;
-		writeRegister(gyro->hi2c, gyro->devAddress, &pwrMgmt, REG_PWR_MGMT_2);
+		status |= writeRegister(gyro->hi2c, gyro->devAddress, &pwrMgmt, REG_PWR_MGMT_2);
 
 		pwrMgmt = PWR_MGMT;
-		writeRegister(gyro->hi2c, gyro->devAddress, &pwrMgmt, REG_LPA_ODR);
+		status |= writeRegister(gyro->hi2c, gyro->devAddress, &pwrMgmt, REG_LPA_ODR);
 
 		break;
 	case LOW_NOISE_ACC_MODE:
 		pwrMgmt = PWR_MGMT + TEMP_DIS + CLKSEL_INTERNAL;
-		writeRegister(gyro->hi2c, gyro->devAddress, &pwrMgmt, REG_PWR_MGMT_1);
+		status |= writeRegister(gyro->hi2c, gyro->devAddress, &pwrMgmt, REG_PWR_MGMT_1);
 
 		pwrMgmt = PWR_MGMT + GYRO_OFF;
-		writeRegister(gyro->hi2c, gyro->devAddress, &pwrMgmt, REG_PWR_MGMT_2);
+		status |= writeRegister(gyro->hi2c, gyro->devAddress, &pwrMgmt, REG_PWR_MGMT_2);
 
 		pwrMgmt = PWR_MGMT;
-		writeRegister(gyro->hi2c, gyro->devAddress, &pwrMgmt, REG_ACCEL_CONFIG);
+		status |= writeRegister(gyro->hi2c, gyro->devAddress, &pwrMgmt, REG_ACCEL_CONFIG);
 
 		pwrMgmt = PWR_MGMT + ACC_DLPF;
-		writeRegister(gyro->hi2c, gyro->devAddress, &pwrMgmt, REG_ACCEL_CONFIG_2);
+		status |= writeRegister(gyro->hi2c, gyro->devAddress, &pwrMgmt, REG_ACCEL_CONFIG_2);
 
 		break;
 	default:
-		return INIT_ERROR;
+		return GYRO_ERROR;
 	}
 
 	/// Calibración inicial del dispositivo.
 	calibrateAccel(gyro);
 
-	return INIT_OK;
+	return (status? GYRO_ERROR : GYRO_OK);
 }
 
-void gyroReadAccel(gyro_t * gyro, int16_t * accX, int16_t * accY, int16_t * accZ){
+gyroStatus_t gyroReadAccel(gyro_t * gyro, int16_t * accX, int16_t * accY, int16_t * accZ){
 	assert(gyro);
 	assert(gyro->hi2c); ///< Verifica que la estructura fue inicializada
 
 	uint8_t values[READ6BYTES];
 	/// Los 6 registros del acelerómetro son contiguos y pueden ser leídos en una única comunicación
-	readRegister(gyro->hi2c, gyro->devAddress, values, REG_ACCEL_XOUT_H, READ6BYTES);
+	bool status = readRegister(gyro->hi2c, gyro->devAddress, values, REG_ACCEL_XOUT_H, READ6BYTES);
 	*accX = (int16_t)((values[ACC_XH]<<8) | (values[ACC_XL])) - gyro->calX;
 	*accY = (int16_t)((values[ACC_YH]<<8) | (values[ACC_YL])) - gyro->calY;
 	*accZ = (int16_t)((values[ACC_ZH]<<8) | (values[ACC_ZL])) - gyro->calZ;
+
+	return (status? GYRO_ERROR : GYRO_OK);
 }
 
 static void calibrateAccel(gyro_t * gyro){
