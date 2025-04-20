@@ -20,12 +20,13 @@
 #include "main.h"
 
 /* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
-#include "API_debounce.h"
+/* USER CODE BEGIN Includes *//************************************************/
+
 #include "API_delay.h"
 #include "API_uart.h"
-#include "API_gy521.h"
-#include "API_led_matrix.h"
+#include "API_debounce.h"
+#include "GY521.h"
+#include "ledMatrix.h"
 #include "math.h"
 
 /* USER CODE END Includes */
@@ -33,10 +34,27 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
+/**
+ * @typedef bubbleState_t
+ * @brief Estados de la FSM del nivel de burbuja.
+ */
+typedef enum{
+	MEDICION_SIMPLE,
+	COMPARACION_NIVELES,
+} bubbleState_t;
+
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
-/* USER CODE BEGIN PD */
+/* USER CODE BEGIN PD *//******************************************************/
+#define MATRIX_WIDTH 8
+#define MATRIX_HEIGHT 8
+#define NOT_VALID_POS 8
+#define MAP_MODE_TANH 1
+#define MOVEMENT_SENSIBILITY 2.0 ///< Sensibilidad del movimiento de la burbuja (valores posibles: 1.5, 2.0, 2.5, 3.0)
+#define INIT_TIME 2000 			///< Tiempo en la pantalla de binvenida al iniciar la aplicación.
+#define RENDER_TIME 500 		///< Tiempo entre mediciones.
 
 /* USER CODE END PD */
 
@@ -52,26 +70,40 @@ SPI_HandleTypeDef hspi1;
 
 extern UART_HandleTypeDef huart2;
 
-/* USER CODE BEGIN PV */
-// Dimensiones de la matriz LED
-#define MATRIX_WIDTH 8
-#define MATRIX_HEIGHT 8
-#define MOVEMENT_SENSIBILITY 2.0
-#define TIEMPO_RENDER 500
-#define DOT_SIZE 1
-
-// Matriz buffer de pantalla
-uint8_t DISPLAY[MATRIX_HEIGHT] = {0};
-
-// Posición del dot en la pantalla
-uint8_t offsetX = 3;
-uint8_t offsetY = 3;
-
+/* USER CODE BEGIN PV *//******************************************************/
+// Parámetros de la matriz
 ledMatrix_t myMatrix;
+uint8_t DISPLAY[MATRIX_HEIGHT] = {0}; 	///< Buffer de pantalla.
+const uint8_t smileyWelcome[] =			///< Imagen de la pantalla de inicio.
+	{
+	0b00111110,
+	0b01000001,
+	0b10010101,
+	0b10100001,
+	0b10100001,
+	0b10010101,
+	0b01000001,
+	0b00111110
+};
+
+// parametros del botón
+buttonChange_t btnChange;
+
+// Parámetros del acelerómetro
+const uint8_t gyroAddress = 0x68;	///< Dirección SPI del GY-521 conectado.
 gyro_t myGyro;
-const uint8_t gyroAddress = 0x68;
 bool_t gyroStatus;
 int16_t accelX, accelY, accelZ;
+
+// parámetros para la aplicación
+bubbleState_t estadoBurbuja;
+gyroStatus_t estadoInitNB;
+delay_t bubbleDelay;
+// Posición del dot en la pantalla
+uint8_t posX;
+uint8_t posY;
+uint8_t posFijaX;
+uint8_t posFijaY;
 
 /* USER CODE END PV */
 
@@ -81,22 +113,141 @@ static void MX_GPIO_Init(void);
 //static void MX_USART2_UART_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_I2C1_Init(void);
-/* USER CODE BEGIN PFP */
+/* USER CODE BEGIN PFP *//*****************************************************/
 
-void mapAccelToPosition(int16_t accX, int16_t accY, uint8_t * posX, uint8_t * posY);
+/**
+ * @brief Inicializa la FSM del nivel de burbuja.
+ *
+ * Establece el estado inicial en `MEDICION_SIMPLE` e inicializa los periféricos necesarios
+ * (acelerómetro, matriz display y el botón utilizado para cambiar de modo).
+ *
+ * @return Estado de inicialización: `INIT_OK` si fue exitosa, `INIT_ERROR` si algún periférico
+ * no inicializó correctamente.
+ */
+gyroStatus_t bubbleInit(void);
+
+/**
+ * @brief Actualiza la FSM del nivel de burbuja.
+ *
+ * Detecta cambios en las entradas (acelerómetro y botón) y define el estado y las salidas de la FSM.
+ *
+ * @return Estado de la FSM del nivel de burbuja.
+ */
+bubbleState_t bubbleUpdate(void);
+
+/**
+ * @brief Guarda la posición actual de la burbuja para utilizarla para el modo de Comparación de Niveles.
+ *
+ * @param posX Posición de la burbuja en el eje X de la matrix.
+ * @param posY Posición de la burbuja en el eje Y de la matrix.
+ * @param[out] posFX Puntero donde guardar la posición de la burbuja en el eje X de la matriz.
+ * @param[out] posFY Puntero donde guardar la posición de la burbuja en el eje Y de la matriz.
+ */
+void saveCurrentLevel(uint8_t posX, uint8_t posY, uint8_t * posFX, uint8_t * posFY);
+
+/**
+ * @brief Descarta la posición guardada de la burbuja para el modo de Comparación de Niveles.
+ *
+ * Para descartar la posición guardada, reemplaza ambos valores en X e Y por un valor de posición
+ * no válida en la matriz, definido en la macro `NOT_VALID_POS`. Este valor es reconocido por la
+ * función `drawMatrix` para identificar que no se guardó una posición fija válida para representar
+ * en la matriz de leds.
+ *
+ * @param[out] posFX Puntero a donde se guardó la posición de la burbuja en el eje X de la matriz.
+ * @param[out] posFY Puntero a donde se guardó la posición de la burbuja en el eje Y de la matriz.
+ */
+void deleteSavedLevel(uint8_t * posFX, uint8_t * posFY);
+
+/**
+ * @brief Genera el buffer de pantalla a partir de la posición (o posiciones) especificada.
+ *
+ * Esta función identifica los leds que necesitan encenderse para representar la posición de la burbuja
+ * definida. También identifica si existe una posición fija para representar, y de ser así, también será
+ * representada en el buffer de pantalla generado.
+ * Al finalizar el armado del buffer de pantalla, llamará a las funciones correspondientes para renderizar
+ * el buffer de pantalla en la matrix y enviar los valores actuales de acelerómetro y posiciones por la UART.
+ *
+ * @param posX Posición de la burbuja en el eje X de la matrix.
+ * @param posY Posición de la burbuja en el eje Y de la matrix.
+ * @param posFX Posición de la burbuja fija en el eje X de la matrix (en modo Comparación de Niveles).
+ * @param posFY Posición de la burbuja fija en el eje Y de la matrix (en modo Comparación de Niveles).
+ */
+void drawMatrix(const uint8_t posX, const uint8_t posY, const uint8_t posFX, const uint8_t posFY);
+
+/**
+ * @brief Realiza el mapping entre los valores obtenidos del acelerómetro y la posición de la burbuja.
+ *
+ * Para el mapeo se tienen en cuenta solamente los valores correspondientes a la aceleración de la gravedad
+ * (determinación de la posición únicamente) descartando valores mayores a 1G posiblemente correspondientes
+ * a aceleraciones debidas a otros movimientos.
+ *
+ * Esta función invierte los ejes X e Y del acelerómetro respecto a las salidas en la matriz de leds para que coincida
+ * con la forma en la que se visualiza la matriz en la aplicación desarrollada.
+ *
+ * @param accX Valor de lectura de la aceleración en el eje X del módulo GY-521.
+ * @param accY Valor de lectura de la aceleración en el eje Y del módulo GY-521.
+ * @param accZ Valor de lectura de la aceleración en el eje Z del módulo GY-521.
+ * @param[out] posX Puntero donde retornar la posición de la burbuja en el eje X de la matriz.
+ * @param[out] posY Puntero donde retornar la posición de la burbuja en el eje Y de la matriz.
+ * @param mode Modo de mapeo: 0-Mapeo lineal, 1-Mapeo no lineal.{
+ */
+void mapAccelToPosition(int16_t accX, int16_t accY, uint8_t * posX, uint8_t * posY, uint8_t mode);
+
+/**
+ * @brief Función auxiliar para acotar valores.
+ *
+ * Acota un valor a los límites superior e inferior determinados.
+ *
+ * @param value Valor a acotar.
+ * @param min Cota inferior.
+ * @param max Cota superior.
+ * @return Valor acotado.
+ */
 int32_t capValue(int32_t value, int32_t min, int32_t max);
+
+/**
+ * @brief Función auxiliar para mapeo lineal de valores.
+ *
+ * Realiza una transformación lineal de un valor que se encuetra entre dos limites de entrada al valor
+ * correspondiente entre los límites de salida especificados.
+ *
+ * @param value Valor a transformar.
+ * @param fromLow Límite inferior del valor de entrada.
+ * @param fromHigh Límite superior del valor de entrada.
+ * @param toLow Límite inferior del valor de salida.
+ * @param toHigh Límite superior del valor de salida.
+ * @return Valor transformado.
+ */
 int32_t mapValues(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh);
+
+/**
+ * @brief Función auxiliar para mapeo no lineal de valores.
+ *
+ * Realiza una transformación no lineal de un valor que se encuetra entre dos limites de entrada al valor
+ * correspondiente entre los límites de salida especificados utilizando la función Tangente Hiperbólica.
+ *
+ * @param value Valor a transformar.
+ * @param fromLow Límite inferior del valor de entrada.
+ * @param fromHigh Límite superior del valor de entrada.
+ * @param toLow Límite inferior del valor de salida.
+ * @param toHigh Límite superior del valor de salida.
+ * @return Valor transformado.
+ */
 int32_t mapTanH(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh);
+
+/**
+ * @brief Envía los valores de entrada y salida por la UART.
+ *
+ * Esta función envia el estado actual de la FSM del nivel de burbuja (Medición Simple o Comparación de
+ * Niveles) junto a los valores leídos del acelerómetro y los valores calculados de posición de las burbujas
+ * móvil y fija.
+ */
+void sendOutputsByUart(void);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-void drawMatrix(void);
-void moveLeft(void);
-void moveRight(void);
-void moveForward(void);
-void moveBackward(void);
 
 /* USER CODE END 0 */
 
@@ -108,19 +259,6 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-	//uint8_t buffer[2];
-	uint8_t smiley[] =          // fill array for the smiley
-		{
-		0b00111110,
-		0b01000001,
-		0b10010101,
-		0b10100001,
-		0b10100001,
-		0b10010101,
-		0b01000001,
-		0b00111110
-	};
-
 
   /* USER CODE END 1 */
 
@@ -149,30 +287,13 @@ int main(void)
 
   /* MAIN USER CODE ***********************************************************/
 	uartInit();
-	gyroStatus = gyroInit(&myGyro, &hi2c1, gyroAddress, LOW_NOISE_ACC_MODE);
-	ledMatrixInit(&myMatrix, &hspi1, GPIOB, GPIO_PIN_6);
-
-	//
-	buttonChange_t btnChange;
-	debounceFSM_init();
-
-	//
-	delay_t myDelay;
-    delayInit(&myDelay, TIEMPO_RENDER);
+	estadoInitNB = bubbleInit();
+    uartSendString((estadoInitNB == GYRO_OK) ? "Nivel de Burbuja inicializado\r\n" : "Error de inicialización\r\n");
 
 
-  	// graficar escena inicial
-    ledMatrixRender(&myMatrix, smiley);
+	// delay de renderizado
+    delayInit(&bubbleDelay, RENDER_TIME);
 
-
-    HAL_Delay(1500);
-
-
-    // render posicion inicial
-    drawMatrix();
-    uartSendString(gyroStatus ? "Connected\r\n" : "Not connected\r\n");
-
-    //HAL_Delay(500);
 
   /* USER CODE END 2 */
 
@@ -180,74 +301,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  btnChange = debounceFSM_update();
-
-	  if(btnChange == BUTTON_PRESSED){
-		  uartSendString("Flanco descendente detectado\r\n");
-		  moveRight();
-	  }
-	  if(btnChange == BUTTON_RELEASED){
-		  uartSendString("Flanco ascendente detectado\r\n");
-		  moveLeft();
-	  }
-
-	  if(delayRead(&myDelay)){
-		  uartSendString("Starting...\r\n");
-		  gyroReadAccel(&myGyro, &accelX, &accelY, &accelZ);
-		  mapAccelToPosition(accelX, accelY, &offsetX, &offsetY);
-		  uartSendString("Acc X: ");
-		  uartSendValue(accelX);
-		  uartSendString(", Acc Y: ");
-		  uartSendValue(accelY);
-		  uartSendString(", Acc Z: ");
-		  uartSendValue(accelZ);
-		  uartSendString(", pos X: ");
-		  uartSendValue(offsetX);
-		  uartSendString(", pos Y: ");
-		  uartSendValue(offsetY);
-		  uartSendString("\r\n");
-		  drawMatrix();
-	  }
-
-	  //HAL_Delay(200);
-
-	  // Simulación de movimiento
-	  /*for(uint8_t i=0; i<5; i++){
-		  moveRight();
-		  uartSendString("Pos X: ");
-		  uartSendValue(offsetX);
-		  uartSendString(", Pos Y: ");
-		  uartSendValue(offsetY);
-		  uartSendString("\r\n");
-		  HAL_Delay(500);
-	  }
-	  for(uint8_t i=0; i<5; i++){
-		  moveForward();
-		  uartSendString("Pos X: ");
-		  uartSendValue(offsetX);
-		  uartSendString(", Pos Y: ");
-		  uartSendValue(offsetY);
-		  uartSendString("\r\n");
-		  HAL_Delay(500);
-	  }
-	  for(uint8_t i=0; i<5; i++){
-		  moveLeft();
-		  uartSendString("Pos X: ");
-		  uartSendValue(offsetX);
-		  uartSendString(", Pos Y: ");
-		  uartSendValue(offsetY);
-		  uartSendString("\r\n");
-		  HAL_Delay(500);
-	  }
-	  for(uint8_t i=0; i<5; i++){
-		  moveBackward();
-		  uartSendString("Pos X: ");
-		  uartSendValue(offsetX);
-		  uartSendString(", Pos Y: ");
-		  uartSendValue(offsetY);
-		  uartSendString("\r\n");
-		  HAL_Delay(500);
-	  }*/
+	  estadoBurbuja = bubbleUpdate();
 
     /* USER CODE END WHILE */
 
@@ -376,30 +430,6 @@ static void MX_SPI1_Init(void)
 }
 
 /**
-  * @brief USART2 Initialization Function
-  * @param None
-  * @retval None
-  */
-/*static void MX_USART2_UART_Init(void)
-{
-
-
-  huart2.Instance = USART2;
-  huart2.Init.BaudRate = 115200;
-  huart2.Init.WordLength = UART_WORDLENGTH_8B;
-  huart2.Init.StopBits = UART_STOPBITS_1;
-  huart2.Init.Parity = UART_PARITY_NONE;
-  huart2.Init.Mode = UART_MODE_TX_RX;
-  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_UART_Init(&huart2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-}*/
-
-/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -437,67 +467,148 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-/*********************************************************************************************************************/
+/******************************************************************************/
 
-// Función para armar el buffer de pantalla
-void drawMatrix(void) {
+gyroStatus_t bubbleInit(void){
+	estadoBurbuja = MEDICION_SIMPLE;
+	posFijaX = NOT_VALID_POS;
+	posFijaY = NOT_VALID_POS;
+
+	gyroStatus_t gyroStatus = gyroInit(&myGyro, &hi2c1, gyroAddress, LOW_NOISE_ACC_MODE);
+	matrixStatus_t lmStatus = ledMatrixInit(&myMatrix, &hspi1, GPIOB, GPIO_PIN_6);
+	debounceFSM_init();
+
+	if(gyroStatus == GYRO_ERROR || lmStatus == MATRIX_ERROR){
+		return GYRO_ERROR;
+	}
+	ledMatrixClear(&myMatrix);
+	ledMatrixRender(&myMatrix, smileyWelcome);
+	HAL_Delay(INIT_TIME); // tiempo de la pantalla de inicio
+	return GYRO_OK;
+}
+
+bubbleState_t bubbleUpdate(void){
+	btnChange = debounceFSM_update();
+
+	switch(estadoBurbuja){
+	case MEDICION_SIMPLE:
+		if(btnChange == BUTTON_PRESSED){
+			saveCurrentLevel(posX, posY, &posFijaX, &posFijaY);
+			estadoBurbuja = COMPARACION_NIVELES;
+		}
+		break;
+	case COMPARACION_NIVELES:
+		if(btnChange == BUTTON_PRESSED){
+			deleteSavedLevel(&posFijaX, &posFijaY);
+			estadoBurbuja = MEDICION_SIMPLE;
+		}
+		break;
+	default:
+		bubbleInit();
+	}
+
+	// Salidas:
+	if(delayRead(&bubbleDelay)){
+		gyroReadAccel(&myGyro, &accelX, &accelY, &accelZ);
+		mapAccelToPosition(accelX, accelY, &posX, &posY, MAP_MODE_TANH);
+		drawMatrix(posX, posY, posFijaX, posFijaY);
+	}
+
+	return estadoBurbuja;
+}
+
+void drawMatrix(const uint8_t posX, const uint8_t posY, const uint8_t posFX, const uint8_t posFY) {
+	assert_param((posX >= 0) && (posX < MATRIX_WIDTH));
+	assert_param((posY >= 0) && (posY < MATRIX_HEIGHT));
+	assert_param((posFX >= 0) && (posFX <= MATRIX_WIDTH));
+	assert_param((posFY >= 0) && (posFY <= MATRIX_HEIGHT));
+
 	for (int col = 0; col < MATRIX_WIDTH; col++) {
 		uint8_t display_column = 0;
 
 		for (int row = 0; row < MATRIX_HEIGHT; row++) {
-			if ((row >= offsetY) && (row <= (offsetY + DOT_SIZE-1)) && (col >= offsetX) && (col <= (offsetX + DOT_SIZE-1))) {
-				display_column |= (1 << row); // Enciende el LED si es la posicion X,Y
+			if ((row == posY) && (col == posX)) {
+				display_column |= (1 << row); // Enciende el LED si es la posicion X,Y definida
 			}
-
+			// posicion fija si hay
+			if(posFX != NOT_VALID_POS && posFY != NOT_VALID_POS){
+				if ((row == posFY) && (col == posFX)) {
+					display_column |= (1 << row);
+				}
+			}
 		}
 		DISPLAY[col] = display_column;
 	}
 	ledMatrixRender(&myMatrix, DISPLAY);
+	sendOutputsByUart();
 }
 
-// Simulación del movimiento
-void moveLeft(void) {
-    offsetX = (offsetX - 1 + MATRIX_WIDTH) % MATRIX_WIDTH;
-    drawMatrix();
-}
-void moveRight(void) {
-    offsetX = (offsetX + 1 + MATRIX_WIDTH) % MATRIX_WIDTH;
-    drawMatrix();
-}/*
-void moveForward(void) {
-    offsetY = (offsetY + 1 + MATRIX_HEIGHT) % MATRIX_HEIGHT;
-    drawMatrix();
-}
-void moveBackward(void) {
-    offsetY = (offsetY - 1 + MATRIX_HEIGHT) % MATRIX_HEIGHT;
-    drawMatrix();
-}*/
+void saveCurrentLevel(uint8_t posX, uint8_t posY, uint8_t * posFX, uint8_t * posFY){
+	assert_param((posX >= 0) && (posX < MATRIX_WIDTH));
+	assert_param((posY >= 0) && (posY < MATRIX_HEIGHT));
+	assert(posFX);
+	assert(posFY);
 
-// map acelerometro a matriz de leds
-void mapAccelToPosition(int16_t accX, int16_t accY, uint8_t * posX, uint8_t * posY){
-	accX = capValue(accX, -_1G, _1G);
+	*posFX = posX;
+	*posFY = posY;
+}
+void deleteSavedLevel(uint8_t * posFX, uint8_t * posFY){
+	assert(posFX);
+	assert(posFY);
+
+	*posFX = NOT_VALID_POS;
+	*posFY = NOT_VALID_POS;
+}
+
+void mapAccelToPosition(int16_t accX, int16_t accY, uint8_t * posX, uint8_t * posY, uint8_t mode){
+	assert_param((accX >= -_2G) && (accX <= _2G));
+	assert_param((accY >= -_2G) && (accY <= _2G));
+	assert(posX);
+	assert(posY);
+	assert_param((mode == 0) || (mode == 1)); // modos validos
+
+	accX = capValue(accX, -_1G, _1G); // tengo en cuenta solo los valores de la aceleracion de la gravedad
 	accY = capValue(accY, -_1G, _1G);
-	// mapeo lineal
-	// *posY = mapValues(accX, -_1G, _1G, 0, MATRIX_WIDTH-1);
-	// *posX = mapValues(accY, -_1G, _1G, 0, MATRIX_HEIGHT-1);
-	// mapeo con tangente hiperbolica
-	*posY = mapTanH(accX, -_1G, _1G, 0, MATRIX_WIDTH);
-	*posX = mapTanH(accY, -_1G, _1G, 0, MATRIX_HEIGHT);
+
+	if(!mode){ // mapeo lineal
+		*posY = mapValues(accX, -_1G, _1G, 0, MATRIX_WIDTH-1);
+		*posX = mapValues(accY, -_1G, _1G, 0, MATRIX_HEIGHT-1);
+	} else { // mapeo con tangente hiperbolica
+		*posY = mapTanH(accX, -_1G, _1G, 0, MATRIX_WIDTH);
+		*posX = mapTanH(accY, -_1G, _1G, 0, MATRIX_HEIGHT);
+	}
 }
 
 int32_t capValue(int32_t value, int32_t min, int32_t max){
 	return (value > max)? max : ((value < min)? min : value);
 }
 int32_t mapValues(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh){
-	return (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow) + toLow;
+	return (int32_t)((value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow) + toLow);
 }
 int32_t mapTanH(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh){
 	double norm = (double)value / fromHigh; // -1.0 a 1.0
 	double curved = (tanh(norm * MOVEMENT_SENSIBILITY) + 1.0) / 2.0; // 0.0 a 1.0
-	int32_t output = (int32_t)(curved * (toHigh - toLow) + toLow);
-	return output;
+	return (int32_t)(curved * (toHigh - toLow) + toLow);
 }
-/*************************************************************************************************************************/
+
+void sendOutputsByUart(void){
+	if(estadoBurbuja == MEDICION_SIMPLE){
+		  uartSendString("Estado: MEDICION SIMPLE \r\n");
+	  } else {
+		  uartSendString("Estado: COMPARACION NIVELES \r\n");
+	  }
+
+	  uartSendString("Acc X: "); 	uartSendValue(accelX);
+	  uartSendString(", Acc Y: "); 	uartSendValue(accelY);
+	  uartSendString(", Acc Z: "); 	uartSendValue(accelZ);
+	  uartSendString(", pos X: "); 	uartSendValue(posX);
+	  uartSendString(", pos Y: ");	uartSendValue(posY);
+	  uartSendString(", pos FX: ");	uartSendValue(posFijaX);
+	  uartSendString(", pos FY: ");	uartSendValue(posFijaY);
+	  uartSendString("\r\n");
+
+}
+/******************************************************************************/
 /* USER CODE END 4 */
 
 /**
