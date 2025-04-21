@@ -83,3 +83,4 @@ gyroStatus_t gyroInit(gyro_t * gyro, I2C_HandleTypeDef * hi2c, uint8_t devAddres
 gyroStatus_t gyroReadAccel(gyro_t * gyro, int16_t * accX, int16_t * accY, int16_t * accZ);
 
 #endif /* API_INC_API_GY521_H_ */
+

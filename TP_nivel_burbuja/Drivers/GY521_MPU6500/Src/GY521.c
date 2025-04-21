@@ -59,7 +59,7 @@ static void calibrateAccel(gyro_t * gyro);
 gyroStatus_t gyroInit(gyro_t * gyro, I2C_HandleTypeDef * hi2c, uint8_t devAddress, gyroPowerModes_t mode){
 	assert(gyro);
 	assert(hi2c);
-	assert_param(devAddress); ///< check address is not 0
+	assert_param(devAddress); // check address is not 0
 
 	gyro->hi2c = hi2c;
 	gyro->devAddress = devAddress;
@@ -68,7 +68,7 @@ gyroStatus_t gyroInit(gyro_t * gyro, I2C_HandleTypeDef * hi2c, uint8_t devAddres
 	gyro->calZ = 0;
 
 	// test connection
-	bool status; ///< variable de estatus de comunicacion
+	bool status; // variable de estatus de comunicacion
 	uint8_t check;
 	status = readRegister(gyro->hi2c, gyro->devAddress, &check, REG_WHO_AM_I, READ1BYTE);
 	if(status || (check != DEV_ID)) return GYRO_ERROR;
@@ -106,7 +106,7 @@ gyroStatus_t gyroInit(gyro_t * gyro, I2C_HandleTypeDef * hi2c, uint8_t devAddres
 		return GYRO_ERROR;
 	}
 
-	/// Calibración inicial del dispositivo.
+	// Calibración inicial del dispositivo.
 	calibrateAccel(gyro);
 
 	return (status? GYRO_ERROR : GYRO_OK);
@@ -114,10 +114,10 @@ gyroStatus_t gyroInit(gyro_t * gyro, I2C_HandleTypeDef * hi2c, uint8_t devAddres
 
 gyroStatus_t gyroReadAccel(gyro_t * gyro, int16_t * accX, int16_t * accY, int16_t * accZ){
 	assert(gyro);
-	assert(gyro->hi2c); ///< Verifica que la estructura fue inicializada
+	assert(gyro->hi2c); // Verifica que la estructura fue inicializada
 
 	uint8_t values[READ6BYTES];
-	/// Los 6 registros del acelerómetro son contiguos y pueden ser leídos en una única comunicación
+	// Los 6 registros del acelerómetro son contiguos y pueden ser leídos en una única comunicación
 	bool status = readRegister(gyro->hi2c, gyro->devAddress, values, REG_ACCEL_XOUT_H, READ6BYTES);
 	*accX = (int16_t)((values[ACC_XH]<<8) | (values[ACC_XL])) - gyro->calX;
 	*accY = (int16_t)((values[ACC_YH]<<8) | (values[ACC_YL])) - gyro->calY;
@@ -128,7 +128,7 @@ gyroStatus_t gyroReadAccel(gyro_t * gyro, int16_t * accX, int16_t * accY, int16_
 
 static void calibrateAccel(gyro_t * gyro){
 	assert(gyro);
-	assert(gyro->hi2c); ///< Verifica que la estructura fue inicializada
+	assert(gyro->hi2c); // Verifica que la estructura fue inicializada
 
 	int32_t sum_x = 0, sum_y = 0, sum_z = 0;
     int16_t accX, accY, accZ;

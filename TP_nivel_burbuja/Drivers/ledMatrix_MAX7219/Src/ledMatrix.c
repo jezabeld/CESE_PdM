@@ -13,7 +13,7 @@
 #include "ledMatrix.h"
 
 // Driver registers
-static const uint8_t REGISTER_DMODE = 0x09; // Decode mode: sets BCD code B (0-9, E, H, L, P, and -) or no-decode operation for each digit
+static const uint8_t REGISTER_DMODE = 0x09; ///< Decode mode: sets BCD code B (0-9, E, H, L, P, and -) or no-decode operation for each digit
 static const uint8_t REGISTER_INTENSITY = 0x0A;
 static const uint8_t REGISTER_SLIMIT = 0x0B;
 static const uint8_t REGISTER_SHUTDOWN = 0x0C;
@@ -36,26 +36,26 @@ matrixStatus_t ledMatrixInit(ledMatrix_t * ledMatrix, SPI_HandleTypeDef * hSpi, 
 	ledMatrix->csPort = csPort;
 	ledMatrix->csPin = csPin;
 
-	setPin(ledMatrix->csPort, ledMatrix->csPin); ///< set CS high to start
-	bool status; ///< variable de estatus de comunicacion
+	setPin(ledMatrix->csPort, ledMatrix->csPin); // set CS high to start
+	bool status; // variable de estatus de comunicacion
 
-	status = sendCommand(ledMatrix->hSpi, ledMatrix->csPort, ledMatrix->csPin, REGISTER_DTEST, DTEST_OFF); ///< test mode OFF
+	status = sendCommand(ledMatrix->hSpi, ledMatrix->csPort, ledMatrix->csPin, REGISTER_DTEST, DTEST_OFF); // test mode OFF
 
-	status |= sendCommand(ledMatrix->hSpi, ledMatrix->csPort, ledMatrix->csPin, REGISTER_SLIMIT, SREEN_LIMIT); ///< control 8 columns
-	status |= sendCommand(ledMatrix->hSpi, ledMatrix->csPort, ledMatrix->csPin, REGISTER_DMODE, DMODE_OFF); ///< decoder OFF
+	status |= sendCommand(ledMatrix->hSpi, ledMatrix->csPort, ledMatrix->csPin, REGISTER_SLIMIT, SREEN_LIMIT); // control 8 columns
+	status |= sendCommand(ledMatrix->hSpi, ledMatrix->csPort, ledMatrix->csPin, REGISTER_DMODE, DMODE_OFF); // decoder OFF
 	status |= (ledMatrixClear(ledMatrix) == MATRIX_ERROR)? true : false;
 
 	status |= sendCommand(ledMatrix->hSpi, ledMatrix->csPort, ledMatrix->csPin, REGISTER_INTENSITY, INTENSITY_LOW);
 
-	status |= (ledMatrixShutdown(ledMatrix, 0) == MATRIX_ERROR)? true : false; ///< salir del modo SHUTDOWN en el que inicia por default
+	status |= (ledMatrixShutdown(ledMatrix, 0) == MATRIX_ERROR)? true : false; // salir del modo SHUTDOWN en el que inicia por default
 
 	return (status? MATRIX_ERROR : MATRIX_OK);
 }
 
 matrixStatus_t ledMatrixShutdown(ledMatrix_t * ledMatrix, uint8_t sd){
 	assert(ledMatrix);
-	assert(ledMatrix->hSpi); ///< verifica que la estructura fue inicializada previamente
-	assert_param((sd == 0) || (sd == 1)); ///< valores válidos
+	assert(ledMatrix->hSpi); // verifica que la estructura fue inicializada previamente
+	assert_param((sd == 0) || (sd == 1)); // valores válidos
 
 	bool status = sendCommand(ledMatrix->hSpi, ledMatrix->csPort, ledMatrix->csPin, REGISTER_SHUTDOWN, sd? SD_DISPLAY_OFF : SD_DISPLAY_ON);
 	return (status? MATRIX_ERROR : MATRIX_OK);
@@ -63,7 +63,7 @@ matrixStatus_t ledMatrixShutdown(ledMatrix_t * ledMatrix, uint8_t sd){
 
 matrixStatus_t ledMatrixClear(ledMatrix_t * ledMatrix){
 	assert(ledMatrix);
-	assert(ledMatrix->hSpi); ///< verifica que la estructura fue inicializada previamente
+	assert(ledMatrix->hSpi); // verifica que la estructura fue inicializada previamente
 
 	for(int i=1; i<=MATRIX_WIDTH; i++){
 		if(sendCommand(ledMatrix->hSpi, ledMatrix->csPort, ledMatrix->csPin, i, CLEAR_COL)) return MATRIX_ERROR;
@@ -73,8 +73,8 @@ matrixStatus_t ledMatrixClear(ledMatrix_t * ledMatrix){
 
 matrixStatus_t ledMatrixRender(ledMatrix_t * ledMatrix, const uint8_t * screen){
 	assert(ledMatrix);
-	assert(ledMatrix->hSpi); ///< verifica que la estructura fue inicializada previamente
-	assert_param(sizeof(screen) == MATRIX_WIDTH); ///< screen es un array de columnas
+	assert(ledMatrix->hSpi); // verifica que la estructura fue inicializada previamente
+	assert_param(sizeof(screen) == MATRIX_WIDTH); // screen es un array de columnas
 
     for (int col = 0; col < MATRIX_WIDTH; col++) {
     	if(sendCommand(ledMatrix->hSpi, ledMatrix->csPort, ledMatrix->csPin, col+1, screen[col])) return MATRIX_ERROR;
