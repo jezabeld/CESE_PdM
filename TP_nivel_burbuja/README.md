@@ -1,114 +1,105 @@
-# TP "Nivel de burbuja" en STM32
+# Nivel de Superficies Digital
 
-Este proyecto fue creado con el objetivo de funcionar como TP final para las materias "Protocolos de Comunicación en Sistemas Embebidos" y "Programación de Microcontroladores".
+Este proyecto fue creado con el objetivo de funcionar como TP final para las materias "Protocolos de Comunicación en Sistemas Embebidos" y "Programación de Microcontroladores" de la **Carrera de Especialización en Sistemas Embebidos** de la UBA.
 
-A continuación se presentan algunas características de los dispositivos utilizados.
+El proyecto consiste en un **Nivel de Superficies Digital** que simula el funcionamiento del clásico *nivel de burbuja* utilizado en carpintería, pero implementado digitalmente. Utiliza un acelerómetro MPU-6500 para medir la inclinación de una superficie en los ejes X e Y, representando el desplazamiento de la burbuja en una matriz de LEDs 8x8. 
+Se modeló la aplicación como una máquina de estado finito cuyos estados se corresponden a los modos de funcionamiento: *medición simple del nivel de una superficie* o *comparador de superficies*. Este segundo modo permite almacenar una medición y compararla con otra en simultáneo. 
 
-## Matriz de LEDs de 8x8 con controlador MAX7219.
+El sistema está basado en una placa STM32 NUCLEO-F446RE, y emplea los siguientes protocolos de comunicación para comunicarse con los módulos de entradas y salidas: I²C para el acelerómetro, SPI para la matriz de LEDs y UART para mostrar los valores de entrada y salida por el monitor serial.
 
-[Datasheet](./docs/max7219-max7221.pdf)
+## Estructura del Proyecto
 
-El MAX7219 es un circuito integrado diseñado para el control de displays de LEDs, permitiendo gestionar hasta 64 LEDs mediante una interfaz serial compatible con SPI. Su arquitectura le permite operar con distintos tipos de arreglos, como matrices de LEDs de 8x8, displays de 7 segmentos de hasta 8 dígitos (originalmente diseñado para este fin) u otras configuraciones basadas en LEDs.
+La aplicación del nivel de superficies se encuentra desarrollada en el archivo `main.c`. La documentación del proyecto fue generada con *Doxygen*, el archivo `Doxyfile` y la documentación generada en `html` se encuentran ubicados en la carpeta `docs/` ubicada a nivel de proyecto.
 
-Este circuito integrado posee algunas características de utilidad como el control de la intensidad del display, un modo para testear el funcionamiento de los LEDs, un decodificador para BCD (Binary Coded Decimal), salidas compatibles para conexión en formato Daisy-Chain, y una pequeña memoria RAM interna con 8 registros de 8 bits donde guarda la información de cada dígito o grupo de 8 LEDs (filas o columnas) de la matriz.
+Esta aplicación utiliza varios drivers específicos desarrollados para facilitar el uso de retardos no bloqueantes, el debounce del botón utilizado para cambiar de modo y el envío de datos mediante la UART. Estos drivers específicos fueron desarrollados como parte de las prácticas de la materia *Programación de Microcontroladores* y mejorados o adaptados para este proyecto, se encuentran ubicados en la carpeta `API/`.
 
-Este integrado funciona como un multiplexor de filas o columnas de la matrix (según su conexión y orientanción). El esquematico de conexión es el siguiente:
-[](./docs/max7219-dot-matrix-circuit-schematic.png)
+Para la configuración y comunicación con los módulos externos seleccionados para el proyecto (el acelerómetro y el display de LEDs) se desarrollaron los *Device Drivers* correspondientes que se encuentran ubicados respectivamente en las carpetas `ledMatrix_MAX7219/` y `GY521_MPU6500/`, acompañados de su respectiva documentación.
 
-### Registros e Instrucciones
+```
+TP_nivel_burbuja/                                                
+├── README.md                          # README del proyecto (a nivel aplicación) 
+├── docs/                              
+|    ├── Doxyfile                      # Doxyfile del proyecto
+|    └── html/                         # Documentación del proyecto (en HTML) generada con Doxygen
+├── Core/                              
+|    ├── Inc/                            
+|    |    ├── main.h                             
+|    |    └── …                          
+|    ├── Src/                            
+|    |    ├── main.c                   # Archivo principal de la aplicación         
+|    |    └── …                        
+└── Drivers/                            
+     ├── API/                          # Drivers Específicos
+     |    ├── README.md                # README de los drivers específicos         
+     |    ├── Inc/                     
+     |    |    ├── API_delay.h         # Proporciona funciones para retardos no bloqueantes                 
+     |    |    ├── API_debounce.h      # Implementa una máquina de estados para el debounce de botón                   
+     |    |    └── API_uart.h          # Interfaz para la configuración y uso de UART2               
+     |    └── Src/                        
+     |         ├── API_delay.c         # Implementación de las funciones de retardo no bloqueante                 
+     |         ├── API_debounce.c      # Implementación de la máquina de estados de debounce                   
+     |         └── API_uart.c          # Implementación de las funciones de UART2    
+     |                  
+     ├── ledMatrix_MAX7219/            # Device Driver para Matrix de LEDs de 8x8 con controlador MAX7219           
+     |    ├── README.md                # README del driver       
+     |    ├── docs/                    # Documentación sobre el driver
+     |    ├── Inc/                       
+     |    |    ├── ledMatrix.h         # Interfaz de alto nivel del driver                           
+     |    |    └── ledMatrix_port.h    # Interfaz de bajo nivel (acceso al hardware)                     
+     |    └── Src/                          
+     |         ├── ledMatrix.c         # Implementación de funciones de alto nivel                
+     |         └── ledMatrix_port.c    # Implementación de funciones específicas del hardware y comunicación por SPI   
+     |                 
+     └── GY521_MPU6500/                # Device Driver para el acelerómetro del GY-521 con controlador MPU-6500         
+          ├── README.md                # README del driver       
+          ├── docs/                    # Documentación sobre el driver     
+          ├── Inc/                       
+          |    ├── GY521.h             # Interfaz de alto nivel del driver                       
+          |    └── GY521_port.h        # Interfaz de bajo nivel (acceso al hardware)                 
+          └── Src/                          
+               ├── GY521.c             # Implementación de funciones de alto nivel               
+               └── GY521_port.c        # Implementación de funciones específicas del hardware y comunicación por I²C                 
+```
 
-El MAX7219 tiene un conjunto de registros de dígitos y de control a los que se les puede enviar comandos a través de la interfaz SPI. Cada comando se envía con 16 bits:
-- Los primeros 8 bits (D15-D8) representan la dirección del registro que se desea escribir.
-- Los siguientes 8 bits (D7-D0) contienen el dato a escribir en ese registro.
-A continuación se detallan los registros con su dirección y una breve descripción de los mismos:
+## Características
 
-| Nombre del Registro   | Dirección (Hexa)  | Descripción | 
-| --------------------- | ----------------- | ----------- | 
-| No-op                 | 0xX0              | Utilizado para manejar múltiples drivers en daisy-chain. El comando No-op (0xX0) seguido de cualquier valor (0xXX) permite no enviar ningún cambio al driver. | 
-| Dígitos 0 a 7         | 0xX1 a 0xX8       | Registros en RAM para programar los dígitos. | 
-| Modo de decodificación | 0xX9             | Habilita el modo de decodificación BCD para cada dígito. Cada bit de dato enviado a este registro corresponde a un dígito.  | 
-| Intensidad del display | 0xXA             | Ajusta el brillo de los LEDs  mediante un PWM interno en 16 niveles (0xX0 a 0xXF). | 
-| Límite de dígitos a escanear              | 0xXB | Setea el número de dígitos a mostrar de 1 a 8 (0xX0 a 0xX7). | 
-| Shutdown              | 0xXC              | Controla el encendido/apagado del chip (0x00 = OFF, 0x01 = ON). Cuando el IC está en modo Shutdown ahorrará energía, pero aún puede ser programado. | 
-| Test de Display       | 0xXF              | Operación en modo Test (todos los LEDs encendidos) o modo normal. | 
-
-El Device Driver desarrollado en este proyecto no admite operaciones de lectura sobre la matriz de leds, por lo que se compone únicamente de operaciones de escritura o `Comandos` enviados a la matriz para su control.
-
-## Acelerometro y giroscopio de 6 ejes GY-521 con controlador MPU-6500.
-
-[Datasheet](./docs/PS-MPU-6500A-01-v1.3.pdf)
-[Register Map](./docs/MPU-6500-Register-Map2.pdf)
-
-STANDARD POWER MODES 
-The following table lists the user-accessible power modes for MPU-6500. 
-
-| Mode  | Name                          | Gyro      | Accel         | DMP       |
-| ----  | ----------------------------- | --------- | ------------- | --------- | 
-| 1     | Sleep Mode                    | Off       | Off           | Off       | 
-| 2     | Standby Mode                  | Drive On  | Off           | Off       |  
-| 3*    | Low-Power Accelerometer Mode  | Off       | Duty-Cycled   | Off       | 
-| 4     | Low-Noise Accelerometer Mode  | Off       | On            | Off       | 
-| 5     | Gyroscope Mode                | On        | Off           | On or Off | 
-| 6     | 6-Axis Mode                   | On        | On            | On or Off |  
-
-(*) The MPU-6500 can be put into Accelerometer Only Low Power Mode using the following steps:  
-- (i) Set CYCLE bit to 1 
-- (ii) Set SLEEP bit to 0 
-- (iii) Set TEMP_DIS bit to 1  
-- (iv) Set DIS_XG, DIS_YG, DIS_ZG bits to 1
-
-In  this  mode,  the  device  will  power  off  all  devices  except  for  the  primary  I2C  interface,  waking  only  
-the  accelerometer at  fixed  intervals to take  a  single measurement.  The  frequency  of  wake-ups  can  
-be configured with LP_WAKE_CTRL as shown below.  
-| LP_WAKE_CTRL  | Wake-up Frequency | 
-| ------------  | ----------------- | 
-| 0             | 1.25 Hz           | 
-| 1             | 5 Hz              | 
-| 2             | 20 Hz             | 
-| 3             | 40 Hz             |
-
-
-### Registros e Instrucciones
-
-| Nombre del Registro   | Dirección (Hexa)  | Descripción | 
-| --------------------- | ----------------- | ----------- | 
-| WHO_AM_I              | 0x75              | __ |
-| CONFIG                | 0x1A              | __ |
-| GYRO_CONFIG           | 0x1B              | __ |
-| ACCEL_CONFIG          | 0x1C              | __ |
-| PWR_MGMT_1            | 0x6B              | __ |
-| PWR_MGMT_2            | 0x6C              | __ |
-| ACCEL_XOUT_H          | 0x3B              | __ |
-| ACCEL_XOUT_L          | 0x3C              | __ |
-| ACCEL_YOUT_H          | 0x3D              | __ |
-| ACCEL_YOUT_L          | 0x3E              | __ |
-| ACCEL_ZOUT_H          | 0x3F              | __ |
-| ACCEL_ZOUT_H          | 0x40              | __ |
+- Matriz de LEDs 8x8: Se utiliza para mostrar la posición de la burbuja en un espacio bidimensional.
+- Acelerómetro GY-521 (MPU-6050): Para detectar la inclinación de la superficie.
+- Modos de operación:
+  - Medición Simple: Muestra la posición dinámica de la burbuja.
+  - Comparación de Niveles: Permite guardar la posición de la burbuja y compararla con una posición dinámica nueva.
 
 
 
-*The  slave  address  of  the  MPU-6500  is  b110100X  which  is  7  bits  long. The  LSB  bit  of  the  7  bit  address  is determined by the logic level on pin AD0. The address of the divice should be b1101000 if pin AD0 is logic low.*
-
-The contents of WHO_AM_I is an 8-bit device 
-ID. The default value of the register is 0x70 for MPU-6500. This is different from the I2C address of 
-the device as seen on the slave I2C controller by the applications processor. The I2C address of the 
-MPU-6500 is 0x68 or 0x69 depending upon the value driven on AD0 pin.
-
-SENSOR DATA REGISTERS  
-The sensor data registers contain the latest gyro, accelerometer, auxiliary sensor, and temperature measurement 
-data. They are read-only registers, and are accessed via the serial interface. Data from these registers may be read 
-anytime. 
-
-FIFO 
-The MPU-6500 contains a 512-byte FIFO register that is accessible via the Serial Interface. The FIFO configuration 
-register determines which data is written into the FIFO. Possible choices include gyro data, accelerometer data, 
-temperature readings, auxiliary sensor readings, and FSYNC input. A FIFO counter keeps track of how many bytes of 
-valid data are contained in the FIFO. The FIFO register supports burst reads. The interrupt function may be used to 
-determine when new data is available.
+- Interfaz UART: Los datos sobre el estado de la burbuja y las lecturas del acelerómetro se envían a través de UART para su visualización o procesamiento externo.
 
 
 
+## Funcionamiento
 
-Note: The (max) accelerometer output rate is 1kHz. This means that for a Sample Rate greater than 1kHz, 
-the same accelerometer sample may be output to the FIFO, DMP, and sensor registers more than 
-once. 
+### Inicialización
+1. Al encender el sistema, se realiza una secuencia de inicialización que configura la matriz de LEDs, el acelerómetro y los periféricos necesarios.
+2. Se muestra una imagen de bienvenida en la matriz de LEDs.
+
+### Modo de Medición Simple
+En este modo, el sistema lee constantemente los valores de aceleración del GY-521 y mapea estos valores a las coordenadas de la matriz de LEDs. El "dot" se mueve de acuerdo a la inclinación de la superficie, representando la burbuja en tiempo real.
+
+### Modo de Comparación de Niveles
+Este modo permite al usuario fijar una posición de la burbuja. Luego, puede comparar esta posición con las mediciones actuales, mostrando si la burbuja se encuentra en una posición más alta, más baja o en la misma.
+
+### Comunicación UART
+El sistema envía datos a través de UART, incluyendo:
+- El estado de la burbuja.
+- Las lecturas del acelerómetro.
+- Las posiciones de la burbuja (movil y fija).
+
+## Funciones Principales
+
+- **bubbleInit()**: Inicializa el sistema y los periféricos.
+- **bubbleUpdate()**: Actualiza el estado de la burbuja, incluyendo la lectura del acelerómetro y el procesamiento del botón.
+- **drawMatrix()**: Dibuja la representación de la burbuja en la matriz de LEDs.
+- **mapAccelToPosition()**: Mapea los valores del acelerómetro a las coordenadas de la matriz.
+- **sendOutputsByUart()**: Envía los datos actuales por UART.
+
+
+
