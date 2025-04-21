@@ -17,7 +17,7 @@
 #include "stm32f4xx_hal.h"
 
 /**
- * @brief Lee un registro del dispositivo conectado por I2C en la dirección seleccionada.
+ * @brief Lee un registro (o un conjunto de registros contiguos) del dispositivo conectado por I2C en la dirección seleccionada.
  *
  * @param[in] hi2c Handler de I2C para la conexión con el dispositivo.
  * @param devAddress Dirección del dispositivo para la conexión por I2C (en formato 7 bits).

@@ -9,9 +9,9 @@ El sistema está basado en una placa STM32 NUCLEO-F446RE, y emplea los siguiente
 
 ## Estructura del Proyecto
 
-La aplicación del nivel de superficies se encuentra desarrollada en el archivo `main.c`. La documentación del proyecto fue generada con *Doxygen*, el archivo `Doxyfile` y la documentación generada en `html` se encuentran ubicados en la carpeta `docs/` ubicada a nivel de proyecto.
+La aplicación del nivel de superficies se encuentra desarrollada en el archivo `main.c`. La documentación del proyecto fue generada con *Doxygen*, el archivo `Doxyfile` y la documentación generada en `html` se encuentran en la carpeta `docs/` ubicada a nivel de proyecto.
 
-Esta aplicación utiliza varios drivers específicos desarrollados para facilitar el uso de retardos no bloqueantes, el debounce del botón utilizado para cambiar de modo y el envío de datos mediante la UART. Estos drivers específicos fueron desarrollados como parte de las prácticas de la materia *Programación de Microcontroladores* y mejorados o adaptados para este proyecto, se encuentran ubicados en la carpeta `API/`.
+Esta aplicación utiliza varios drivers específicos desarrollados para facilitar el uso de retardos no bloqueantes, el debounce del botón utilizado para cambiar de modo y el envío de datos mediante la UART. Estos drivers específicos fueron desarrollados como parte de las prácticas de la materia *Programación de Microcontroladores* y mejorados o adaptados para este proyecto, se encuentran ubicados en la carpeta [API/](./Drivers/API/README.md).
 
 Para la configuración y comunicación con los módulos externos seleccionados para el proyecto (el acelerómetro y el display de LEDs) se desarrollaron los *Device Drivers* correspondientes que se encuentran ubicados respectivamente en las carpetas `ledMatrix_MAX7219/` y `GY521_MPU6500/`, acompañados de su respectiva documentación.
 
@@ -61,45 +61,127 @@ TP_nivel_burbuja/
                └── GY521_port.c        # Implementación de funciones específicas del hardware y comunicación por I²C                 
 ```
 
-## Características
+## Máquina de Estados Finitos en la aplicación
 
-- Matriz de LEDs 8x8: Se utiliza para mostrar la posición de la burbuja en un espacio bidimensional.
-- Acelerómetro GY-521 (MPU-6050): Para detectar la inclinación de la superficie.
-- Modos de operación:
-  - Medición Simple: Muestra la posición dinámica de la burbuja.
-  - Comparación de Niveles: Permite guardar la posición de la burbuja y compararla con una posición dinámica nueva.
+El comportamiento de la aplicación es el siguiente:
+- el modo normal de funcionamiento del dispositivo es una medición simple del nivel de la superficie, mediante el cual se detecta la inclinación del módulo mediante las lecturas del acelerómetro y se grafica una "burbuja" en el display de LEDs que representa dicha inclinación
+- al presionar un botón, el nivel actual es "fijado" en la pantalla (el led se fija en la posición actual) y una segunda "burbuja" acompaña el movimiento
+- cuando ambos niveles se encuentran alineados se veran ambas "burbujas" en la misma posición (un solo led encendido)
+- para salir del modo de comparación se presiona nuevamente el botón y se retorna al modo normal de medición simple.
 
+Para modelar este comportamiento se utilizó el modelo de **MEF de Mealy**, en el que las salidas dependen del *estado actual* y de *las entradas*. Para ello se definen los estados de la siguiente forma:
 
+- MEDICIÓN_SIMPLE: En este estado, la aplicación funciona como medidor del nivel de la superficie actual.
+- COMPARACIÓN_DE_NIVELES: En este estado la aplicación permite comparar el nivel de la superficie actual contra un nivel previo fijado.
 
-- Interfaz UART: Los datos sobre el estado de la burbuja y las lecturas del acelerómetro se envían a través de UART para su visualización o procesamiento externo.
+Las entradas son las siguientes:
 
+- Lecturas de acelerómetro: Las lecturas obtenidas de los ejes X e Y del acelerómetro.
+- Pulsación del botón: Cada pulsación del botón será una entrada para la aplicación.
 
+Las salidas son las siguientes:
 
-## Funcionamiento
+- Posición de la burbuja móvil en la pantalla de LEDs.
+- Prescencia y posición de la burbuja fija en la pantalla de LEDs.
 
-### Inicialización
-1. Al encender el sistema, se realiza una secuencia de inicialización que configura la matriz de LEDs, el acelerómetro y los periféricos necesarios.
-2. Se muestra una imagen de bienvenida en la matriz de LEDs.
-
-### Modo de Medición Simple
-En este modo, el sistema lee constantemente los valores de aceleración del GY-521 y mapea estos valores a las coordenadas de la matriz de LEDs. El "dot" se mueve de acuerdo a la inclinación de la superficie, representando la burbuja en tiempo real.
-
-### Modo de Comparación de Niveles
-Este modo permite al usuario fijar una posición de la burbuja. Luego, puede comparar esta posición con las mediciones actuales, mostrando si la burbuja se encuentra en una posición más alta, más baja o en la misma.
-
-### Comunicación UART
-El sistema envía datos a través de UART, incluyendo:
-- El estado de la burbuja.
-- Las lecturas del acelerómetro.
-- Las posiciones de la burbuja (movil y fija).
+![](./docs/html/docs/MEF_nivel_burbuja.jpg)
+![](./docs/MEF_nivel_burbuja.jpg)
 
 ## Funciones Principales
 
-- **bubbleInit()**: Inicializa el sistema y los periféricos.
-- **bubbleUpdate()**: Actualiza el estado de la burbuja, incluyendo la lectura del acelerómetro y el procesamiento del botón.
-- **drawMatrix()**: Dibuja la representación de la burbuja en la matriz de LEDs.
-- **mapAccelToPosition()**: Mapea los valores del acelerómetro a las coordenadas de la matriz.
-- **sendOutputsByUart()**: Envía los datos actuales por UART.
+- bubbleInit(): Inicializa la MEF y los periféricos.
+- bubbleUpdate(): Actualiza el estado de la burbuja, incluyendo la lectura del acelerómetro y el procesamiento del botón.
+- drawMatrix(): Genera el buffer de pantalla para renderizar en la matriz de LEDs.
+- mapAccelToPosition(): Mapea los valores del acelerómetro a las coordenadas de la matriz.
+- sendOutputsByUart(): Envía los valores de entrada y salida por la UART.
+- saveCurrentLevel(): Guarda la posición actual de la burbuja para utilizarla para la comparación.
+- deleteSavedLevel(): Borra la posición guardada de la burbuja fija.
 
+## Perfiféricos utilizados
 
+### Módulo I²C:
+Utilizado para la comunicación con el GY-521 (MPU-6500). Se configuró de la siguiente manera:
+- Velocidad del reloj: 100KHz
+- Largo de direcciones: 7 bits
+- Pin SCL: Puerto B pin 8
+- Pin SDA: Puerto B pin 9
+- Interrupciones: deshabilitadas.
+- DMA: deshabilitado.
 
+### Módulo SPI:
+Utilizado para la comunicación con la matriz de LEDs 8x8 (MAX7219). Se configuró de la siguiente manera:
+- Modo: simplex, sólo MOSI.
+- Tamaño de transmisión: 8 bits
+- Endianness: MSB first
+- Polaridad del Reloj (CPOL): 1 (HIGH)
+- Fase del reloj (CPHA): 0 (leading edge)
+- Baud Rate: 1.3125 Mbits/s 
+- Pin SCK: Puerto A pn 5
+- Pin MOSI: Puerto A pin 7
+- Pin CS: Puerto B pin 6
+- Interrupciones: deshabilitadas.
+- DMA: deshabilitado.
+
+### Módulo UART:
+Para mostrar los valores del acelerómetro y la posición de la burbuja en la matriz por el monitor serial. Se configuró de la siguiente manera:
+- Interfaz: UART2
+- Baud Rate: 115200 bps
+- Tamaño del frame: 8 bits
+- Paridad: No
+- Bits de stop: 1
+- Control de flujo por hardware: deshabilitado.
+- Interrupciones: deshabilitadas.
+- DMA: deshabilitado.
+
+### Timers:
+Para gestionar el tiempo entre lecturas del acelerómetro y actualizar la matriz. Se utilizó el *SysTick*.
+
+### GPIO:
+Para cambiar de modo de trabajo en la aplicación se utilizó el botón 1. Este botón se encuentra incorporado en la placa NUCLEO y se encuentra conectado al *puerto C pin 13*.
+
+## Drivers implementados
+### GY521_MPU6500 (I2C)
+[Link a la documentación del driver](./Drivers/GY521_MPU6500/README.md)
+
+Este Device Driver es un Polled Driver que permite configurar y controlar el acelerómetro del módulo comercial GY-521 que utiliza el controlador MPU-6500. 
+
+El propósito de este driver es facilitar la lectura valores del acelerómetro a través de la interfaz I²C y operar con el acelerómetro en diferentes modos de alimentación. 
+
+El diseño del driver sigue una arquitectura modular por capas, donde la capa superior o de alto nivel funciona como abstracción del hardware, presentando una interfaz más amigable hacia el usuario. Entre las funcionalidades presentadas mediante la interfaz al usuario se encuentran:
+- Inicializar el sensor en modos de bajo consumo o bajo ruido.
+- Leer las mediciones del acelerómetro en los tres ejes (X, Y, Z) mediante una función sencilla.
+- Calibrar el offset en cada eje al inicializar el dispositivo y ajustar las mediciones realizadas con dichos valores.
+
+La capa inferior o de bajo nivel de este driver concentra la comunicación con el hardware mediante el protocolo I²C, utilizando las funciones que provee la HAL de STM32. Entre las funcionalidades de la capa de bajo nivel se encuentran:
+- Lectura de 1 hasta 14 registros contiguos del controlador MPU-6500.
+- Escritura de un registro específico del controlador MPU-6500.
+- Posibilidad de saber si las operaciones se realizaron exitosamente o con errores, mediante los valores de retorno de las funciones.
+
+Este driver tiene el siguiente alcance y limitaciones:
+- Se encuentra diseñado específicamente para el acelerómetro del modelo de controlador MPU-6500. Otros sensores pueden requerir configuraciones distintas y no se recomienda el uso de este driver.
+- No se implementa  el uso del giroscopio ni del sensor de temperatura presentes en el controlador MPU-6500.
+- Se encuentran implementados dos modos de operación: Low-Power Accelerator Mode y Low-Noise Accelerator Mode tal como se describen en el datasheet del MPU-6500, sin uso del sensor de temperatura. No se encuentran implementados los modos descritos como Sleep Mode, Standby Mode, Gyroscope Mode o 6-Axis Mode, dejándose para una posible implementación posterior.
+
+### ledMatrix_MAX7219 (SPI)
+[Link a la documentación del driver](./Drivers/ledMatrix_MAX7219/README.md)
+
+Este Device Driver es un Polled Driver que permite configurar y controlar una matriz de LEDs de 8x8 que utiliza el controlador MAX7219. 
+
+El propósito de este driver es facilitar el renderizado de un buffer de pantalla previamente generado, en la matriz de LEDs a través de la interfaz SPI, de forma similar a como se trabajaría cualquier otro display gráfico de mayor complejidad. 
+
+El diseño del driver sigue una arquitectura modular por capas, donde la capa superior o de alto nivel funciona como abstracción del hardware, presentando una interfaz más amigable hacia el usuario. Entre las funcionalidades presentadas mediante la interfaz al usuario se encuentran:
+- Inicializar el controlador MAX7219 para trabajar con la matriz de LEDs.
+- Setear la intensidad de los LEDs de forma simple con 3 niveles predefinidos.
+- Activar y desactivar el modo SHUTDOWN de la matriz.
+- Limpiar el display (apagar todos los LEDs).
+- Renderizar un buffer de pantalla en el display de LEDs.
+
+La capa inferior o de bajo nivel de este driver concentra la comunicación con el hardware mediante el protocolo SPI, utilizando las funciones que provee la HAL de STM32. Entre las funcionalidades de la capa de bajo nivel se encuentran:
+- Setear un pin determinado en HIGH o LOW (utilizado para activar la comunicación mediante el pin designado como Chip Select.
+- Enviar un comando o instrucción y su correspondiente valor por SPI. 
+- Posibilidad de saber si el envío de la instrucción se realizó exitosamente o con errores, mediante el valor de retorno de la función.
+
+Este driver tiene el siguiente alcance y limitaciones:
+- Está diseñado para manejar una sola matriz y no puede manejar múltiples matrices en cascada sin antes extender la lógica de transmisión SPI.
+- No admite operaciones de lectura, por lo que se compone únicamente de operaciones de escritura o comandos enviados a la matriz de LEDs para su control.
+- No permite renderización parcial del display.

@@ -87,7 +87,7 @@ Macros</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a04602f1a8003c0269712a0624a2e508a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="GY521__port_8c.html#a04602f1a8003c0269712a0624a2e508a">readRegister</a> (I2C_HandleTypeDef *hi2c, uint8_t devAddress, uint8_t *data, uint8_t regAddress, uint8_t sizeRead)</td></tr>
-<tr class="memdesc:a04602f1a8003c0269712a0624a2e508a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Lee un registro del dispositivo conectado por I2C en la dirección seleccionada.  <a href="GY521__port_8c.html#a04602f1a8003c0269712a0624a2e508a">More...</a><br /></td></tr>
+<tr class="memdesc:a04602f1a8003c0269712a0624a2e508a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Lee un registro (o un conjunto de registros contiguos) del dispositivo conectado por I2C en la dirección seleccionada.  <a href="GY521__port_8c.html#a04602f1a8003c0269712a0624a2e508a">More...</a><br /></td></tr>
 <tr class="separator:a04602f1a8003c0269712a0624a2e508a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab1c71f9fdb091ec2fb3e9b4794cc1051"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="GY521__port_8c.html#ab1c71f9fdb091ec2fb3e9b4794cc1051">writeRegister</a> (I2C_HandleTypeDef *hi2c, uint8_t devAddress, uint8_t *data, uint8_t regAddress)</td></tr>
 <tr class="memdesc:ab1c71f9fdb091ec2fb3e9b4794cc1051"><td class="mdescLeft">&#160;</td><td class="mdescRight">Escribe un registro del dispositivo conectado por I2C en la dirección seleccionada.  <a href="GY521__port_8c.html#ab1c71f9fdb091ec2fb3e9b4794cc1051">More...</a><br /></td></tr>
@@ -171,7 +171,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Lee un registro del dispositivo conectado por I2C en la dirección seleccionada. </p>
+<p>Lee un registro (o un conjunto de registros contiguos) del dispositivo conectado por I2C en la dirección seleccionada. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">hi2c</td><td>Handler de I2C para la conexión con el dispositivo. </td></tr>

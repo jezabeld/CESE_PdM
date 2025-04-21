@@ -65,8 +65,15 @@ $(function() {
 <div class="title">Device Driver para el acelerómetro del GY-521 con controlador MPU-6500 </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>El propósito de este driver es facilitar la lectura valores del acelerómetro a través de la interfaz I²C y operar con el acelerómetro en diferentes modos de alimentación.</p>
-<p>Este driver está diseñado específicamente para el modelo MPU-6500. Otros sensores pueden requerir configuraciones distintas. No se implementa el uso del giroscopio ni del sensor de temperatura del módulo GY-521.</p>
+<div class="textblock"><p>Este <em>Device Driver</em> es un <b>Polled Driver</b> que permite configurar y controlar el acelerómetro del módulo comercial GY-521 que utiliza el controlador MPU-6500.</p>
+<p>El propósito de este driver es facilitar la lectura valores del acelerómetro a través de la interfaz I²C y operar con el acelerómetro en diferentes modos de alimentación.</p>
+<p>El diseño del driver sigue una <em>arquitectura modular por capas</em>, donde la capa superior o de alto nivel funciona como abstracción del hardware, presentando una interfaz más amigable hacia el usuario.</p>
+<p>Este driver tiene el siguiente alcance y limitaciones:</p>
+<ul>
+<li>Se encuentra diseñado específicamente para el acelerómetro del modelo de controlador MPU-6500. Otros sensores pueden requerir configuraciones distintas y no se recomienda el uso de este driver.</li>
+<li>No se implementa el uso del giroscopio ni del sensor de temperatura presentes en el controlador MPU-6500.</li>
+<li>Se encuentran implementados dos modos de operación: <em>Low-Power Accelerator Mode</em> y <em>Low-Noise Accelerator Mode</em> tal como se describen en el datasheet del MPU-6500, sin uso del sensor de temperatura. No se encuentran implementados los modos descritos como Sleep Mode, Standby Mode, Gyroscope Mode o 6-Axis Mode, dejándose para una posible implementación posterior.</li>
+</ul>
 <h1><a class="anchor" id="autotoc_md6"></a>
 Estructura del driver</h1>
 <div class="fragment"><div class="line">GY521_MPU6500/</div>
@@ -78,18 +85,13 @@ Estructura del driver</h1>
 <div class="line">│   └── GY521_port.c    # Implementación de funciones específicas del hardware y comunicación por I²C</div>
 <div class="line">└── docs/               # Documentación sobre el driver</div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md7"></a>
-Funcionalidades principales</h1>
-<p>Este driver permite:</p>
-<ul>
-<li>Inicializar el sensor MPU-6500 en modos de bajo consumo o bajo ruido.</li>
-<li>Leer valores crudos del acelerómetro en los tres ejes (X, Y, Z).</li>
-<li>Calibrar automáticamente el offset en cada eje al iniciar.</li>
-<li>Operar con lectura optimizada de registros (lectura de 6 bytes contiguos).</li>
-</ul>
-<p><b>Nota:</b> Este driver no implementa la lectura del giroscopio ni del sensor de temperatura del módulo GY-521.</p>
-<h1><a class="anchor" id="autotoc_md8"></a>
 Interfaz de alto nivel</h1>
 <p>Las funciones y estructuras disponibles para el usuario están definidas en <code><a class="el" href="GY521_8h.html">GY521.h</a></code>.</p>
+<p>Entre las funcionalidades presentadas mediante la interfaz al usuario se encuentran:</p><ul>
+<li>Inicializar el sensor en modos de bajo consumo o bajo ruido.</li>
+<li>Leer las mediciones del acelerómetro en los tres ejes (X, Y, Z) mediante una función sencilla.</li>
+<li>Calibrar el offset en cada eje al inicializar el dispositivo y ajustar las mediciones realizadas con dichos valores.</li>
+</ul>
 <p>Este módulo utiliza una estructura <code><a class="el" href="structgyro__t.html">gyro_t</a></code> que encapsula los datos necesarios para operar el acelerómetro del módulo GY-521: </p><div class="fragment"><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span>{</div>
 <div class="line">   I2C_HandleTypeDef * hi2c;</div>
 <div class="line">   uint8_t devAddress;</div>
@@ -111,6 +113,13 @@ Interfaz de alto nivel</h1>
 <p><b>NOTAS:</b></p><ul>
 <li>La calibración inicial se realiza al momento de llamar a <code><a class="el" href="GY521_8h.html#ad5703e4fc030ae928f06a6d93fb84a6c" title="Inicializa el giroscopio y acelerometro en el modo de alimentación seleccionado.">gyroInit()</a></code>, y se basa en la posición actual del dispositivo.</li>
 <li>La función <code><a class="el" href="GY521_8h.html#aadda465e5e3f59e65edc21335442377c" title="Lee los valores del acelerómetro.">gyroReadAccel()</a></code> entrega valores crudos (int16_t) que corresponden a la aceleración medida en los tres ejes, donde ±1G corresponde a ±16384 (modo ±2G del dispositivo).</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md8"></a>
+Capa de acceso al Hardware</h1>
+<p>La capa inferior o de bajo nivel de este driver concentra la comunicación con el hardware mediante el protocolo I²C, utilizando las funciones que provee la HAL de STM32. Entre las funcionalidades de la capa de bajo nivel se encuentran:</p><ul>
+<li>Lectura de 1 hasta 14 registros contiguos del controlador MPU-6500.</li>
+<li>Escritura de un registro específico del controlador MPU-6500.</li>
+<li>Posibilidad de saber si las operaciones se realizaron exitosamente o con errores, mediante los valores de retorno de las funciones.</li>
 </ul>
 <h1><a class="anchor" id="autotoc_md9"></a>
 Modos de alimentación</h1>
@@ -166,8 +175,8 @@ Ejemplo de uso básico</h1>
 <div class="ttc" id="aGY521_8h_html_ad3ad46c96171dffbc49649007b5b42f8adf6dcb6b6e83638732d13f2cbcce5d34"><div class="ttname"><a href="GY521_8h.html#ad3ad46c96171dffbc49649007b5b42f8adf6dcb6b6e83638732d13f2cbcce5d34">GYRO_OK</a></div><div class="ttdeci">@ GYRO_OK</div><div class="ttdef"><b>Definition:</b> GY521.h:52</div></div>
 <div class="ttc" id="aGY521_8h_html_ad5703e4fc030ae928f06a6d93fb84a6c"><div class="ttname"><a href="GY521_8h.html#ad5703e4fc030ae928f06a6d93fb84a6c">gyroInit</a></div><div class="ttdeci">gyroStatus_t gyroInit(gyro_t *gyro, I2C_HandleTypeDef *hi2c, uint8_t devAddress, gyroPowerModes_t mode)</div><div class="ttdoc">Inicializa el giroscopio y acelerometro en el modo de alimentación seleccionado.</div><div class="ttdef"><b>Definition:</b> GY521.c:59</div></div>
 <div class="ttc" id="aGY521_8h_html_af0c0f8d02c73b2d5856042967abf8dc6a6729cd768e555dd1186158c6d24c5973"><div class="ttname"><a href="GY521_8h.html#af0c0f8d02c73b2d5856042967abf8dc6a6729cd768e555dd1186158c6d24c5973">LOW_POWER_ACC_MODE</a></div><div class="ttdeci">@ LOW_POWER_ACC_MODE</div><div class="ttdef"><b>Definition:</b> GY521.h:41</div></div>
-<div class="ttc" id="amain_8c_html_aab22133dc9e13fd03a97753cfe2465c1"><div class="ttname"><a href="main_8c.html#aab22133dc9e13fd03a97753cfe2465c1">myGyro</a></div><div class="ttdeci">gyro_t myGyro</div><div class="ttdef"><b>Definition:</b> main.c:94</div></div>
-<div class="ttc" id="amain_8c_html_af7b2c26e44dadaaa798a5c3d82914ba7"><div class="ttname"><a href="main_8c.html#af7b2c26e44dadaaa798a5c3d82914ba7">hi2c1</a></div><div class="ttdeci">I2C_HandleTypeDef hi2c1</div><div class="ttdef"><b>Definition:</b> main.c:67</div></div>
+<div class="ttc" id="amain_8c_html_aab22133dc9e13fd03a97753cfe2465c1"><div class="ttname"><a href="main_8c.html#aab22133dc9e13fd03a97753cfe2465c1">myGyro</a></div><div class="ttdeci">gyro_t myGyro</div><div class="ttdef"><b>Definition:</b> main.c:87</div></div>
+<div class="ttc" id="amain_8c_html_af7b2c26e44dadaaa798a5c3d82914ba7"><div class="ttname"><a href="main_8c.html#af7b2c26e44dadaaa798a5c3d82914ba7">hi2c1</a></div><div class="ttdeci">I2C_HandleTypeDef hi2c1</div><div class="ttdef"><b>Definition:</b> main.c:60</div></div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md13"></a>
 Información general sobre el acelerometro y giroscopio de 6 ejes GY-521 con controlador MPU-6500.</h1>
 <p><a href="./docs/PS-MPU-6500A-01-v1.3.pdf">Datasheet del controlador MPU-6500</a></p>

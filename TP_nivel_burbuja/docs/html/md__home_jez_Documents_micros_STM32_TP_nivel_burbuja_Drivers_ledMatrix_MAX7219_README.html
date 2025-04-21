@@ -65,9 +65,15 @@ $(function() {
 <div class="title">Device Driver para Matrix de LEDs de 8x8 con controlador MAX7219 </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>El propósito de este driver es <b>abstraer la comunicación y el manejo de la matriz de LEDs</b>, permitiendo al usuario interactuar con el display de forma sencilla y segura mediante funciones claras y desacopladas del hardware específico.</p>
-<p>El diseño sigue una <b>arquitectura modular por capas</b>, lo que facilita su reutilización en distintos proyectos y plataformas.</p>
-<p>El driver fue diseñado para manejar una sola matriz y no puede manejar múltiples matrices en cascada sin antes extender la lógica de transmisión SPI. Este driver no admite operaciones de lectura, por lo que se compone únicamente de operaciones de escritura o <code>Comandos</code> enviados a la matriz de LEDs para su control.</p>
+<div class="textblock"><p>Este <em>Device Driver</em> es un <b>Polled Driver</b> que permite configurar y controlar una matriz de LEDs de 8x8 que utiliza el controlador MAX7219.</p>
+<p>El propósito de este driver es facilitar el renderizado de un buffer de pantalla previamente generado, en la matriz de LEDs a través de la interfaz SPI, de forma similar a como se trabajaría cualquier otro display gráfico de mayor complejidad.</p>
+<p>El diseño sigue una <em>arquitectura modular por capas</em>, donde la capa superior o de alto nivel funciona como abstracción del hardware, presentando una interfaz más amigable hacia el usuario.</p>
+<p>Este driver tiene el siguiente alcance y limitaciones:</p>
+<ul>
+<li>Está diseñado para manejar una sola matriz y no puede manejar múltiples matrices en cascada sin antes extender la lógica de transmisión SPI.</li>
+<li>No admite operaciones de lectura, por lo que se compone únicamente de operaciones de escritura o comandos enviados a la matriz de LEDs para su control.</li>
+<li>No permite renderización parcial del display.</li>
+</ul>
 <h1><a class="anchor" id="autotoc_md17"></a>
 Estructura del driver</h1>
 <div class="fragment"><div class="line">ledMatrix_MAX7219/</div>
@@ -79,18 +85,15 @@ Estructura del driver</h1>
 <div class="line"> │ └── ledMatrix_port.c # Implementación de funciones específicas del hardware y comunicación por SPI</div>
 <div class="line"> └── docs/              # Documentación sobre el driver</div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md18"></a>
-Funcionalidades principales</h1>
-<ul>
-<li>Inicialización del dispositivo MAX7219</li>
-<li>Encendido y apagado del display (modo SHUTDOWN)</li>
-<li>Control de brillo (tres niveles: bajo, medio, alto)</li>
-<li>Limpieza de pantalla</li>
-<li>Representación de un buffer de pantalla en la matriz (renderizado)</li>
-<li>Aislamiento del control de pines y comunicación SPI en funciones de bajo nivel (<code><a class="el" href="ledMatrix__port_8c.html">ledMatrix_port.c</a></code>)</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md19"></a>
 Interfaz de alto nivel</h1>
 <p>Las funciones y estructuras disponibles para el usuario están definidas en <code><a class="el" href="ledMatrix_8h.html" title="Device Driver para matriz de LEDs de 8x8 con controlador MAX7219.">ledMatrix.h</a></code>.</p>
+<p>Entre las funcionalidades presentadas mediante la interfaz al usuario se encuentran:</p><ul>
+<li>Inicializar el controlador MAX7219 para trabajar con la matriz de LEDs.</li>
+<li>Setear la intensidad de los LEDs de forma simple con 3 niveles predefinidos.</li>
+<li>Activar y desactivar el modo SHUTDOWN de la matriz.</li>
+<li>Limpiar el display (apagar todos los LEDs).</li>
+<li>Renderizar un buffer de pantalla en el display de LEDs.</li>
+</ul>
 <p>Este módulo utiliza una estructura <code><a class="el" href="structledMatrix__t.html">ledMatrix_t</a></code> que encapsula los datos necesarios para operar la matriz: </p><div class="fragment"><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span>{</div>
 <div class="line">   GPIO_TypeDef * csPort;</div>
 <div class="line">   uint16_t csPin;</div>
@@ -114,6 +117,14 @@ Interfaz de alto nivel</h1>
 <td class="markdownTableBodyNone"><a class="el" href="ledMatrix_8h.html#a5af38095b6d75c9a188214a37ed31b7f" title="Setea el nivel de intensidad o brillo de los LEDs de la matriz.">ledMatrixSetIntensity()</a>   </td><td class="markdownTableBodyNone">Ajusta el brillo de los LEDs de la matriz   </td></tr>
 </table>
 <p><b>NOTA:</b> La función <code><a class="el" href="ledMatrix_8h.html#a9a7287ffaabdebd914292cb71f35d5d4" title="Renderiza en la matriz la información del buffer de pantalla.">ledMatrixRender()</a></code> espera un puntero a un arreglo de 8 bytes, donde cada byte representa una columna del display.</p>
+<h1><a class="anchor" id="autotoc_md19"></a>
+Capa de acceso al Hardware</h1>
+<p>La capa inferior o de bajo nivel de este driver concentra la comunicación con el hardware mediante el protocolo SPI, utilizando las funciones que provee la HAL de STM32. Entre las funcionalidades de la capa de bajo nivel se encuentran:</p>
+<ul>
+<li>Setear un pin determinado en HIGH o LOW (utilizado para activar la comunicación mediante el pin designado como Chip Select.</li>
+<li>Enviar un comando o instrucción y su correspondiente valor por SPI.</li>
+<li>Posibilidad de saber si el envío de la instrucción se realizó exitosamente o con errores, mediante el valor de retorno de la función.</li>
+</ul>
 <h1><a class="anchor" id="autotoc_md20"></a>
 Ejemplo de uso básico</h1>
 <p>Ejemplo de inicialización y renderizado: </p><div class="fragment"><div class="line"><a class="code" href="structledMatrix__t.html">ledMatrix_t</a> <a class="code" href="main_8c.html#ab6664a3a684cfa4b2818fe41ea26aa7b">myMatrix</a>;</div>
@@ -126,7 +137,7 @@ Ejemplo de uso básico</h1>
 <div class="ttc" id="aledMatrix_8h_html_a5af38095b6d75c9a188214a37ed31b7f"><div class="ttname"><a href="ledMatrix_8h.html#a5af38095b6d75c9a188214a37ed31b7f">ledMatrixSetIntensity</a></div><div class="ttdeci">matrixStatus_t ledMatrixSetIntensity(ledMatrix_t *ledMatrix, ledIntensity_t intensity)</div><div class="ttdoc">Setea el nivel de intensidad o brillo de los LEDs de la matriz.</div><div class="ttdef"><b>Definition:</b> ledMatrix.c:85</div></div>
 <div class="ttc" id="aledMatrix_8h_html_a859f806de684566e40531672eb496318"><div class="ttname"><a href="ledMatrix_8h.html#a859f806de684566e40531672eb496318">ledMatrixInit</a></div><div class="ttdeci">matrixStatus_t ledMatrixInit(ledMatrix_t *ledMatrix, SPI_HandleTypeDef *hSpi, GPIO_TypeDef *csPort, uint16_t csPin)</div><div class="ttdoc">Inicializador de la matriz a controlar.</div><div class="ttdef"><b>Definition:</b> ledMatrix.c:29</div></div>
 <div class="ttc" id="aledMatrix_8h_html_a9a7287ffaabdebd914292cb71f35d5d4"><div class="ttname"><a href="ledMatrix_8h.html#a9a7287ffaabdebd914292cb71f35d5d4">ledMatrixRender</a></div><div class="ttdeci">matrixStatus_t ledMatrixRender(ledMatrix_t *ledMatrix, const uint8_t *screen)</div><div class="ttdoc">Renderiza en la matriz la información del buffer de pantalla.</div><div class="ttdef"><b>Definition:</b> ledMatrix.c:74</div></div>
-<div class="ttc" id="amain_8c_html_ab6664a3a684cfa4b2818fe41ea26aa7b"><div class="ttname"><a href="main_8c.html#ab6664a3a684cfa4b2818fe41ea26aa7b">myMatrix</a></div><div class="ttdeci">ledMatrix_t myMatrix</div><div class="ttdef"><b>Definition:</b> main.c:75</div></div>
+<div class="ttc" id="amain_8c_html_ab6664a3a684cfa4b2818fe41ea26aa7b"><div class="ttname"><a href="main_8c.html#ab6664a3a684cfa4b2818fe41ea26aa7b">myMatrix</a></div><div class="ttdeci">ledMatrix_t myMatrix</div><div class="ttdef"><b>Definition:</b> main.c:68</div></div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md21"></a>
 Información general sobre la Matriz de LEDs de 8x8 con controlador MAX7219.</h1>
 <p><a href="./docs/max7219-max7221.pdf">Datasheet del controlador MAX7219</a></p>

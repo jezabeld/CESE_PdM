@@ -1,11 +1,16 @@
 # Device Driver para Matrix de LEDs de 8x8 con controlador MAX7219
 
-El propósito de este driver es **abstraer la comunicación y el manejo de la matriz de LEDs**, permitiendo al usuario interactuar con el display de forma sencilla y segura mediante funciones claras y desacopladas del hardware específico.
+Este *Device Driver* es un **Polled Driver** que permite configurar y controlar una matriz de LEDs de 8x8 que utiliza el controlador MAX7219. 
 
-El diseño sigue una **arquitectura modular por capas**, lo que facilita su reutilización en distintos proyectos y plataformas.
+El propósito de este driver es facilitar el renderizado de un buffer de pantalla previamente generado, en la matriz de LEDs a través de la interfaz SPI, de forma similar a como se trabajaría cualquier otro display gráfico de mayor complejidad. 
 
-El driver fue diseñado para manejar una sola matriz y no puede manejar múltiples matrices en cascada sin antes extender la lógica de transmisión SPI.
-Este driver no admite operaciones de lectura, por lo que se compone únicamente de operaciones de escritura o `Comandos` enviados a la matriz de LEDs para su control.
+El diseño sigue una *arquitectura modular por capas*,  donde la capa superior o de alto nivel funciona como abstracción del hardware, presentando una interfaz más amigable hacia el usuario.
+
+Este driver tiene el siguiente alcance y limitaciones:
+
+- Está diseñado para manejar una sola matriz y no puede manejar múltiples matrices en cascada sin antes extender la lógica de transmisión SPI.
+- No admite operaciones de lectura, por lo que se compone únicamente de operaciones de escritura o comandos enviados a la matriz de LEDs para su control.
+- No permite renderización parcial del display.
 
 ## Estructura del driver
 
@@ -20,18 +25,16 @@ ledMatrix_MAX7219/
  └── docs/              # Documentación sobre el driver
 ```
 
-## Funcionalidades principales
-
-- Inicialización del dispositivo MAX7219
-- Encendido y apagado del display (modo SHUTDOWN)
-- Control de brillo (tres niveles: bajo, medio, alto)
-- Limpieza de pantalla
-- Representación de un buffer de pantalla en la matriz (renderizado)
-- Aislamiento del control de pines y comunicación SPI en funciones de bajo nivel (`ledMatrix_port.c`)
-
 ## Interfaz de alto nivel
 
 Las funciones y estructuras disponibles para el usuario están definidas en `ledMatrix.h`.
+
+Entre las funcionalidades presentadas mediante la interfaz al usuario se encuentran:
+- Inicializar el controlador MAX7219 para trabajar con la matriz de LEDs.
+- Setear la intensidad de los LEDs de forma simple con 3 niveles predefinidos.
+- Activar y desactivar el modo SHUTDOWN de la matriz.
+- Limpiar el display (apagar todos los LEDs).
+- Renderizar un buffer de pantalla en el display de LEDs.
 
 Este módulo utiliza una estructura `ledMatrix_t` que encapsula los datos necesarios para operar la matriz:
 ```c
@@ -54,6 +57,14 @@ Las funciones disponibles son las siguientes:
 | ledMatrixSetIntensity() | Ajusta el brillo de los LEDs de la matriz |
 
 **NOTA:** La función `ledMatrixRender()` espera un puntero a un arreglo de 8 bytes, donde cada byte representa una columna del display.
+
+## Capa de acceso al Hardware
+La capa inferior o de bajo nivel de este driver concentra la comunicación con el hardware mediante el protocolo SPI, utilizando las funciones que provee la HAL de STM32. Entre las funcionalidades de la capa de bajo nivel se encuentran:
+
+- Setear un pin determinado en HIGH o LOW (utilizado para activar la comunicación mediante el pin designado como Chip Select.
+- Enviar un comando o instrucción y su correspondiente valor por SPI. 
+- Posibilidad de saber si el envío de la instrucción se realizó exitosamente o con errores, mediante el valor de retorno de la función.
+
 
 ## Ejemplo de uso básico
 

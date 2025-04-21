@@ -1,9 +1,16 @@
 # Device Driver para el acelerómetro del GY-521 con controlador MPU-6500
 
-El propósito de este driver es facilitar la lectura valores del acelerómetro a través de la interfaz I²C y operar con el acelerómetro en diferentes modos de alimentación.
+Este *Device Driver* es un **Polled Driver** que permite configurar y controlar el acelerómetro del módulo comercial GY-521 que utiliza el controlador MPU-6500. 
 
-Este driver está diseñado específicamente para el modelo MPU-6500. Otros sensores pueden requerir configuraciones distintas.
-No se implementa  el uso del giroscopio ni del sensor de temperatura del módulo GY-521.
+El propósito de este driver es facilitar la lectura valores del acelerómetro a través de la interfaz I²C y operar con el acelerómetro en diferentes modos de alimentación. 
+
+El diseño del driver sigue una *arquitectura modular por capas*, donde la capa superior o de alto nivel funciona como abstracción del hardware, presentando una interfaz más amigable hacia el usuario. 
+
+Este driver tiene el siguiente alcance y limitaciones:
+
+- Se encuentra diseñado específicamente para el acelerómetro del modelo de controlador MPU-6500. Otros sensores pueden requerir configuraciones distintas y no se recomienda el uso de este driver.
+- No se implementa  el uso del giroscopio ni del sensor de temperatura presentes en el controlador MPU-6500.
+- Se encuentran implementados dos modos de operación: *Low-Power Accelerator Mode* y *Low-Noise Accelerator Mode* tal como se describen en el datasheet del MPU-6500, sin uso del sensor de temperatura. No se encuentran implementados los modos descritos como Sleep Mode, Standby Mode, Gyroscope Mode o 6-Axis Mode, dejándose para una posible implementación posterior.
 
 ## Estructura del driver
 
@@ -18,19 +25,13 @@ GY521_MPU6500/
 └── docs/               # Documentación sobre el driver
 ```
 
-## Funcionalidades principales
-
-Este driver permite:
-
-- Inicializar el sensor MPU-6500 en modos de bajo consumo o bajo ruido.
-- Leer valores crudos del acelerómetro en los tres ejes (X, Y, Z).
-- Calibrar automáticamente el offset en cada eje al iniciar.
-- Operar con lectura optimizada de registros (lectura de 6 bytes contiguos).
-
-**Nota:** Este driver no implementa la lectura del giroscopio ni del sensor de temperatura del módulo GY-521.
-
 ## Interfaz de alto nivel
 Las funciones y estructuras disponibles para el usuario están definidas en `GY521.h`.
+
+Entre las funcionalidades presentadas mediante la interfaz al usuario se encuentran:
+- Inicializar el sensor en modos de bajo consumo o bajo ruido.
+- Leer las mediciones del acelerómetro en los tres ejes (X, Y, Z) mediante una función sencilla.
+- Calibrar el offset en cada eje al inicializar el dispositivo y ajustar las mediciones realizadas con dichos valores.
 
 Este módulo utiliza una estructura `gyro_t` que encapsula los datos necesarios para operar el acelerómetro del módulo GY-521:
 ```c
@@ -54,6 +55,13 @@ Las funciones disponibles son las siguientes:
 **NOTAS:**
 - La calibración inicial se realiza al momento de llamar a `gyroInit()`, y se basa en la posición actual del dispositivo.
 - La función `gyroReadAccel()` entrega valores crudos (int16_t) que corresponden a la aceleración medida en los tres ejes, donde ±1G corresponde a ±16384 (modo ±2G del dispositivo).
+
+## Capa de acceso al Hardware
+
+La capa inferior o de bajo nivel de este driver concentra la comunicación con el hardware mediante el protocolo I²C, utilizando las funciones que provee la HAL de STM32. Entre las funcionalidades de la capa de bajo nivel se encuentran:
+- Lectura de 1 hasta 14 registros contiguos del controlador MPU-6500.
+- Escritura de un registro específico del controlador MPU-6500.
+- Posibilidad de saber si las operaciones se realizaron exitosamente o con errores, mediante los valores de retorno de las funciones.
 
 ## Modos de alimentación
 El driver permite seleccionar entre dos modos de alimentación del acelerómetro durante la inicialización, definidos mediante el parámetro `mode`. Ambos modos están optimizados para diferentes necesidades de consumo y precisión de medición, utilizando configuraciones específicas del MPU-6500:

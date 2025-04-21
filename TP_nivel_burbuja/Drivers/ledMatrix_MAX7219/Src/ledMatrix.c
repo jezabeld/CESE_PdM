@@ -1,5 +1,5 @@
 /**
- * @file API_led_matrix.c
+ * @file ledMatrix.c
  * @brief Device Driver para matriz de LEDs de 8x8 con controlador MAX7219.
  *
  * Creado como parte del Trabajo Práctico final de las materias `Protocolos de
