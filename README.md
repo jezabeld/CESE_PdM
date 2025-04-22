@@ -7,6 +7,11 @@ Se modeló la aplicación como una máquina de estado finito cuyos estados se co
 
 El sistema está basado en una placa STM32 NUCLEO-F446RE, y emplea los siguientes protocolos de comunicación para comunicarse con los módulos de entradas y salidas: I²C para el acelerómetro, SPI para la matriz de LEDs y UART para mostrar los valores de entrada y salida por el monitor serial.
 
+## Diagrama de bloques
+
+![](./docs/html/docs/diagrama%20de%20bloques.jpg)
+![](./docs/diagrama%20de%20bloques.jpg)
+
 ## Estructura del Proyecto
 
 La aplicación del nivel de superficies se encuentra desarrollada en el archivo `main.c`. La documentación del proyecto fue generada con *Doxygen*, el archivo `Doxyfile` y la documentación generada en `html` se encuentran en la carpeta `docs/` ubicada a nivel de proyecto.

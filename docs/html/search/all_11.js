@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['writeregister_154',['writeRegister',['../GY521__port_8h.html#ab1c71f9fdb091ec2fb3e9b4794cc1051',1,'writeRegister(I2C_HandleTypeDef *hi2c, uint8_t devAddress, uint8_t *data, uint8_t regAddress):&#160;GY521_port.c'],['../GY521__port_8c.html#ab1c71f9fdb091ec2fb3e9b4794cc1051',1,'writeRegister(I2C_HandleTypeDef *hi2c, uint8_t devAddress, uint8_t *data, uint8_t regAddress):&#160;GY521_port.c']]]
+  ['vdd_5fvalue_320',['VDD_VALUE',['../stm32f4xx__hal__conf_8h.html#aae550dad9f96d52cfce5e539adadbbb4',1,'stm32f4xx_hal_conf.h']]]
 ];
