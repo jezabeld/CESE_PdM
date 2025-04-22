@@ -65,13 +65,16 @@ $(function() {
 <div class="title">Nivel de Superficies Digital </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="md__home_jez_Documents_micros_STM32_TP_nivel_burbuja_README"></a> Este proyecto fue creado con el objetivo de funcionar como TP final para las materias "Protocolos de Comunicación en Sistemas Embebidos" y "Programación de Microcontroladores" de la <b>Carrera de Especialización en Sistemas Embebidos</b> de la UBA.</p>
+<div class="textblock"><p><a class="anchor" id="md__home_jez_Documents_U_CESE_CESE_PdM_TP_nivel_burbuja_README"></a> Este proyecto fue creado con el objetivo de funcionar como TP final para las materias "Protocolos de Comunicación en Sistemas Embebidos" y "Programación de Microcontroladores" de la <b>Carrera de Especialización en Sistemas Embebidos</b> de la UBA.</p>
 <p>El proyecto consiste en un <b>Nivel de Superficies Digital</b> que simula el funcionamiento del clásico <em>nivel de burbuja</em> utilizado en carpintería, pero implementado digitalmente. Utiliza un acelerómetro MPU-6500 para medir la inclinación de una superficie en los ejes X e Y, representando el desplazamiento de la burbuja en una matriz de LEDs 8x8. Se modeló la aplicación como una máquina de estado finito cuyos estados se corresponden a los modos de funcionamiento: <em>medición simple del nivel de una superficie</em> o <em>comparador de superficies</em>. Este segundo modo permite almacenar una medición y compararla con otra en simultáneo.</p>
 <p>El sistema está basado en una placa STM32 NUCLEO-F446RE, y emplea los siguientes protocolos de comunicación para comunicarse con los módulos de entradas y salidas: I²C para el acelerómetro, SPI para la matriz de LEDs y UART para mostrar los valores de entrada y salida por el monitor serial.</p>
 <h1><a class="anchor" id="autotoc_md24"></a>
+Diagrama de bloques</h1>
+<p><img src="./docs/html/docs/diagrama%20de%20bloques.jpg" alt="" class="inline"/> <img src="./docs/diagrama%20de%20bloques.jpg" alt="" class="inline"/></p>
+<h1><a class="anchor" id="autotoc_md25"></a>
 Estructura del Proyecto</h1>
 <p>La aplicación del nivel de superficies se encuentra desarrollada en el archivo <code><a class="el" href="main_8c.html" title="Nivel de Superficies Digital.">main.c</a></code>. La documentación del proyecto fue generada con <em>Doxygen</em>, el archivo <code>Doxyfile</code> y la documentación generada en <code>html</code> se encuentran en la carpeta <code>docs/</code> ubicada a nivel de proyecto.</p>
-<p>Esta aplicación utiliza varios drivers específicos desarrollados para facilitar el uso de retardos no bloqueantes, el debounce del botón utilizado para cambiar de modo y el envío de datos mediante la UART. Estos drivers específicos fueron desarrollados como parte de las prácticas de la materia <em>Programación de Microcontroladores</em> y mejorados o adaptados para este proyecto, se encuentran ubicados en la carpeta <a class="el" href="md__home_jez_Documents_micros_STM32_TP_nivel_burbuja_Drivers_API_README.html">API/</a>.</p>
+<p>Esta aplicación utiliza varios drivers específicos desarrollados para facilitar el uso de retardos no bloqueantes, el debounce del botón utilizado para cambiar de modo y el envío de datos mediante la UART. Estos drivers específicos fueron desarrollados como parte de las prácticas de la materia <em>Programación de Microcontroladores</em> y mejorados o adaptados para este proyecto, se encuentran ubicados en la carpeta <a class="el" href="md__home_jez_Documents_U_CESE_CESE_PdM_TP_nivel_burbuja_Drivers_API_README.html">API/</a>.</p>
 <p>Para la configuración y comunicación con los módulos externos seleccionados para el proyecto (el acelerómetro y el display de LEDs) se desarrollaron los <em>Device Drivers</em> correspondientes que se encuentran ubicados respectivamente en las carpetas <code>ledMatrix_MAX7219/</code> y <code>GY521_MPU6500/</code>, acompañados de su respectiva documentación.</p>
 <div class="fragment"><div class="line">TP_nivel_burbuja/                                                </div>
 <div class="line">├── README.md                          # README del proyecto (a nivel aplicación) </div>
@@ -116,7 +119,7 @@ Estructura del Proyecto</h1>
 <div class="line">          └── Src/                          </div>
 <div class="line">               ├── GY521.c             # Implementación de funciones de alto nivel               </div>
 <div class="line">               └── GY521_port.c        # Implementación de funciones específicas del hardware y comunicación por I²C                 </div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md25"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md26"></a>
 Máquina de Estados Finitos en la aplicación</h1>
 <p>El comportamiento de la aplicación es el siguiente:</p><ul>
 <li>el modo normal de funcionamiento del dispositivo es una medición simple del nivel de la superficie, mediante el cual se detecta la inclinación del módulo mediante las lecturas del acelerómetro y se grafica una "burbuja" en el display de LEDs que representa dicha inclinación</li>
@@ -140,7 +143,7 @@ Máquina de Estados Finitos en la aplicación</h1>
 <li>Prescencia y posición de la burbuja fija en la pantalla de LEDs.</li>
 </ul>
 <p><img src="./docs/html/docs/MEF_nivel_burbuja.jpg" alt="" class="inline"/> <img src="./docs/MEF_nivel_burbuja.jpg" alt="" class="inline"/></p>
-<h1><a class="anchor" id="autotoc_md26"></a>
+<h1><a class="anchor" id="autotoc_md27"></a>
 Funciones Principales</h1>
 <ul>
 <li><a class="el" href="main_8c.html#ab770accc0a3c32281d41a7d3951103f6" title="Inicializa la FSM del nivel de burbuja.">bubbleInit()</a>: Inicializa la MEF y los periféricos.</li>
@@ -151,9 +154,9 @@ Funciones Principales</h1>
 <li><a class="el" href="main_8c.html#a334a5aad6b1689ef45ac4b93cf4f6884" title="Guarda la posición actual de la burbuja para utilizarla para el modo de Comparación de Niveles.">saveCurrentLevel()</a>: Guarda la posición actual de la burbuja para utilizarla para la comparación.</li>
 <li><a class="el" href="main_8c.html#a199edc37e5eb3bb6578fb19093cec6da" title="Descarta la posición guardada de la burbuja para el modo de Comparación de Niveles.">deleteSavedLevel()</a>: Borra la posición guardada de la burbuja fija.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md27"></a>
+<h1><a class="anchor" id="autotoc_md28"></a>
 Perfiféricos utilizados</h1>
-<h2><a class="anchor" id="autotoc_md28"></a>
+<h2><a class="anchor" id="autotoc_md29"></a>
 Módulo I²C:</h2>
 <p>Utilizado para la comunicación con el GY-521 (MPU-6500). Se configuró de la siguiente manera:</p><ul>
 <li>Velocidad del reloj: 100KHz</li>
@@ -163,7 +166,7 @@ Módulo I²C:</h2>
 <li>Interrupciones: deshabilitadas.</li>
 <li>DMA: deshabilitado.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md29"></a>
+<h2><a class="anchor" id="autotoc_md30"></a>
 Módulo SPI:</h2>
 <p>Utilizado para la comunicación con la matriz de LEDs 8x8 (MAX7219). Se configuró de la siguiente manera:</p><ul>
 <li>Modo: simplex, sólo MOSI.</li>
@@ -178,7 +181,7 @@ Módulo SPI:</h2>
 <li>Interrupciones: deshabilitadas.</li>
 <li>DMA: deshabilitado.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md30"></a>
+<h2><a class="anchor" id="autotoc_md31"></a>
 Módulo UART:</h2>
 <p>Para mostrar los valores del acelerómetro y la posición de la burbuja en la matriz por el monitor serial. Se configuró de la siguiente manera:</p><ul>
 <li>Interfaz: UART2</li>
@@ -190,17 +193,17 @@ Módulo UART:</h2>
 <li>Interrupciones: deshabilitadas.</li>
 <li>DMA: deshabilitado.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md31"></a>
+<h2><a class="anchor" id="autotoc_md32"></a>
 Timers:</h2>
 <p>Para gestionar el tiempo entre lecturas del acelerómetro y actualizar la matriz. Se utilizó el <em>SysTick</em>.</p>
-<h2><a class="anchor" id="autotoc_md32"></a>
+<h2><a class="anchor" id="autotoc_md33"></a>
 GPIO:</h2>
 <p>Para cambiar de modo de trabajo en la aplicación se utilizó el botón 1. Este botón se encuentra incorporado en la placa NUCLEO y se encuentra conectado al <em>puerto C pin 13</em>.</p>
-<h1><a class="anchor" id="autotoc_md33"></a>
+<h1><a class="anchor" id="autotoc_md34"></a>
 Drivers implementados</h1>
-<h2><a class="anchor" id="autotoc_md34"></a>
+<h2><a class="anchor" id="autotoc_md35"></a>
 GY521_MPU6500 (I2C)</h2>
-<p><a class="el" href="md__home_jez_Documents_micros_STM32_TP_nivel_burbuja_Drivers_GY521_MPU6500_README.html">Link a la documentación del driver</a></p>
+<p><a class="el" href="md__home_jez_Documents_U_CESE_CESE_PdM_TP_nivel_burbuja_Drivers_GY521_MPU6500_README.html">Link a la documentación del driver</a></p>
 <p>Este Device Driver es un Polled Driver que permite configurar y controlar el acelerómetro del módulo comercial GY-521 que utiliza el controlador MPU-6500.</p>
 <p>El propósito de este driver es facilitar la lectura valores del acelerómetro a través de la interfaz I²C y operar con el acelerómetro en diferentes modos de alimentación.</p>
 <p>El diseño del driver sigue una arquitectura modular por capas, donde la capa superior o de alto nivel funciona como abstracción del hardware, presentando una interfaz más amigable hacia el usuario. Entre las funcionalidades presentadas mediante la interfaz al usuario se encuentran:</p><ul>
@@ -218,9 +221,9 @@ GY521_MPU6500 (I2C)</h2>
 <li>No se implementa el uso del giroscopio ni del sensor de temperatura presentes en el controlador MPU-6500.</li>
 <li>Se encuentran implementados dos modos de operación: Low-Power Accelerator Mode y Low-Noise Accelerator Mode tal como se describen en el datasheet del MPU-6500, sin uso del sensor de temperatura. No se encuentran implementados los modos descritos como Sleep Mode, Standby Mode, Gyroscope Mode o 6-Axis Mode, dejándose para una posible implementación posterior.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md35"></a>
+<h2><a class="anchor" id="autotoc_md36"></a>
 ledMatrix_MAX7219 (SPI)</h2>
-<p><a class="el" href="md__home_jez_Documents_micros_STM32_TP_nivel_burbuja_Drivers_ledMatrix_MAX7219_README.html">Link a la documentación del driver</a></p>
+<p><a class="el" href="md__home_jez_Documents_U_CESE_CESE_PdM_TP_nivel_burbuja_Drivers_ledMatrix_MAX7219_README.html">Link a la documentación del driver</a></p>
 <p>Este Device Driver es un Polled Driver que permite configurar y controlar una matriz de LEDs de 8x8 que utiliza el controlador MAX7219.</p>
 <p>El propósito de este driver es facilitar el renderizado de un buffer de pantalla previamente generado, en la matriz de LEDs a través de la interfaz SPI, de forma similar a como se trabajaría cualquier otro display gráfico de mayor complejidad.</p>
 <p>El diseño del driver sigue una arquitectura modular por capas, donde la capa superior o de alto nivel funciona como abstracción del hardware, presentando una interfaz más amigable hacia el usuario. Entre las funcionalidades presentadas mediante la interfaz al usuario se encuentran:</p><ul>
