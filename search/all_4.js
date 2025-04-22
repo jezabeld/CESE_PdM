@@ -13,12 +13,12 @@ var searchData=
   ['delaywrite_82',['delayWrite',['../API__delay_8h.html#a2af041ac01bb3db8ecf87ce371fac67d',1,'delayWrite(delay_t *delay, tick_t duration):&#160;API_delay.c'],['../API__delay_8c.html#a2af041ac01bb3db8ecf87ce371fac67d',1,'delayWrite(delay_t *delay, tick_t duration):&#160;API_delay.c']]],
   ['deletesavedlevel_83',['deleteSavedLevel',['../main_8c.html#a199edc37e5eb3bb6578fb19093cec6da',1,'main.c']]],
   ['devaddress_84',['devAddress',['../structgyro__t.html#af6f359c04ee0834c5b9993a7398de0d5',1,'gyro_t']]],
-  ['device_20driver_20para_20el_20acelerómetro_20del_20gy_2d521_20con_20controlador_20mpu_2d6500_85',['Device Driver para el acelerómetro del GY-521 con controlador MPU-6500',['../md__home_jez_Documents_micros_STM32_TP_nivel_burbuja_Drivers_GY521_MPU6500_README.html',1,'']]],
-  ['device_20driver_20para_20matrix_20de_20leds_20de_208x8_20con_20controlador_20max7219_86',['Device Driver para Matrix de LEDs de 8x8 con controlador MAX7219',['../md__home_jez_Documents_micros_STM32_TP_nivel_burbuja_Drivers_ledMatrix_MAX7219_README.html',1,'']]],
+  ['device_20driver_20para_20el_20acelerómetro_20del_20gy_2d521_20con_20controlador_20mpu_2d6500_85',['Device Driver para el acelerómetro del GY-521 con controlador MPU-6500',['../md__home_jez_Documents_U_CESE_CESE_PdM_TP_nivel_burbuja_Drivers_GY521_MPU6500_README.html',1,'']]],
+  ['device_20driver_20para_20matrix_20de_20leds_20de_208x8_20con_20controlador_20max7219_86',['Device Driver para Matrix de LEDs de 8x8 con controlador MAX7219',['../md__home_jez_Documents_U_CESE_CESE_PdM_TP_nivel_burbuja_Drivers_ledMatrix_MAX7219_README.html',1,'']]],
   ['device_5freset_87',['DEVICE_RESET',['../GY521_8c.html#a98e5ae1fe30ec3f2c1d7f60ffaf70e8e',1,'GY521.c']]],
   ['display_88',['DISPLAY',['../main_8c.html#ad6dad1e72edaed64d74dba1be98f1f3b',1,'main.c']]],
   ['dp83848_5fphy_5faddress_89',['DP83848_PHY_ADDRESS',['../stm32f4xx__hal__conf_8h.html#a25f014091aaba92bdd9d95d0b2f00503',1,'stm32f4xx_hal_conf.h']]],
   ['drawmatrix_90',['drawMatrix',['../main_8c.html#a88fa672843b988a199b78049c65d2e3e',1,'main.c']]],
-  ['drivers_20api_91',['Drivers API',['../md__home_jez_Documents_micros_STM32_TP_nivel_burbuja_Drivers_API_README.html',1,'']]],
+  ['drivers_20api_91',['Drivers API',['../md__home_jez_Documents_U_CESE_CESE_PdM_TP_nivel_burbuja_Drivers_API_README.html',1,'']]],
   ['duration_92',['duration',['../structdelay__t.html#a2efd6ae537b4af5e3413de5a8b8c2684',1,'delay_t']]]
 ];
