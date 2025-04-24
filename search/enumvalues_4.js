@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['low_5fnoise_5facc_5fmode_483',['LOW_NOISE_ACC_MODE',['../GY521_8h.html#af0c0f8d02c73b2d5856042967abf8dc6ac2b01383a59aa6201dd948cf17987e6b',1,'GY521.h']]],
-  ['low_5fpower_5facc_5fmode_484',['LOW_POWER_ACC_MODE',['../GY521_8h.html#af0c0f8d02c73b2d5856042967abf8dc6a6729cd768e555dd1186158c6d24c5973',1,'GY521.h']]]
+  ['intensity_5fhigh_486',['INTENSITY_HIGH',['../ledMatrix_8h.html#a289f5d26af6c61d56ccb47a2785c89fea7e0a5c1076505b4ac878845ad6d5371e',1,'ledMatrix.h']]],
+  ['intensity_5flow_487',['INTENSITY_LOW',['../ledMatrix_8h.html#a289f5d26af6c61d56ccb47a2785c89fea60669f55ac310482fc22c003029fb522',1,'ledMatrix.h']]],
+  ['intensity_5fmedium_488',['INTENSITY_MEDIUM',['../ledMatrix_8h.html#a289f5d26af6c61d56ccb47a2785c89fead07ebc0eee4eb4af5532ea456eb5101c',1,'ledMatrix.h']]]
 ];

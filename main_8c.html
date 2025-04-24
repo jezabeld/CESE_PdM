@@ -87,10 +87,6 @@ $(function() {
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
-<tr class="memitem:af04e6ec3c92f294d177b2ffd4885ee71"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#af04e6ec3c92f294d177b2ffd4885ee71">MATRIX_WIDTH</a>&#160;&#160;&#160;8</td></tr>
-<tr class="separator:af04e6ec3c92f294d177b2ffd4885ee71"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a144c7d32cf5ab713b7507dfd2a600cae"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a144c7d32cf5ab713b7507dfd2a600cae">MATRIX_HEIGHT</a>&#160;&#160;&#160;8</td></tr>
-<tr class="separator:a144c7d32cf5ab713b7507dfd2a600cae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aca77236e863f1ed7b226b238df7c7f65"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#aca77236e863f1ed7b226b238df7c7f65">NOT_VALID_POS</a>&#160;&#160;&#160;8</td></tr>
 <tr class="separator:aca77236e863f1ed7b226b238df7c7f65"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a559aed0f0f8381a57edf2325b98e8664"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a559aed0f0f8381a57edf2325b98e8664">MAP_MODE_TANH</a>&#160;&#160;&#160;1</td></tr>
@@ -109,18 +105,24 @@ Macros</h2></td></tr>
 Enumerations</h2></td></tr>
 <tr class="memitem:a1b03acbe049ffa57f2cf2b6a94fe3116"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a1b03acbe049ffa57f2cf2b6a94fe3116">bubbleState_t</a> { <a class="el" href="main_8c.html#a1b03acbe049ffa57f2cf2b6a94fe3116acfa12d917235125362d1c1bc3d9d0726">MEDICION_SIMPLE</a>
 , <a class="el" href="main_8c.html#a1b03acbe049ffa57f2cf2b6a94fe3116a54fe9849f639fda35c012ad5e3faf55d">COMPARACION_NIVELES</a>
+, <a class="el" href="main_8c.html#a1b03acbe049ffa57f2cf2b6a94fe3116a3a0343339ba04410c25c8c27be7bf160">FSM_ERROR</a>
  }</td></tr>
 <tr class="memdesc:a1b03acbe049ffa57f2cf2b6a94fe3116"><td class="mdescLeft">&#160;</td><td class="mdescRight">Estados de la FSM del nivel de burbuja.  <a href="main_8c.html#a1b03acbe049ffa57f2cf2b6a94fe3116">More...</a><br /></td></tr>
 <tr class="separator:a1b03acbe049ffa57f2cf2b6a94fe3116"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d06b7dccfcfdd2feb5e7e887d1bdb5f"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a8d06b7dccfcfdd2feb5e7e887d1bdb5f">bubbleStatus_t</a> { <a class="el" href="main_8c.html#a8d06b7dccfcfdd2feb5e7e887d1bdb5fa5bde228d9506a863d51ffbc868ff67f7">STATUS_ERROR</a>
+, <a class="el" href="main_8c.html#a8d06b7dccfcfdd2feb5e7e887d1bdb5fa7e4a42e3b6dd63708c64cf3db6f69566">STATUS_OK</a>
+ }</td></tr>
+<tr class="memdesc:a8d06b7dccfcfdd2feb5e7e887d1bdb5f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Estado de la operación.  <a href="main_8c.html#a8d06b7dccfcfdd2feb5e7e887d1bdb5f">More...</a><br /></td></tr>
+<tr class="separator:a8d06b7dccfcfdd2feb5e7e887d1bdb5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a70af21c671abfcc773614a9a4f63d920"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a70af21c671abfcc773614a9a4f63d920">SystemClock_Config</a> (void)</td></tr>
 <tr class="memdesc:a70af21c671abfcc773614a9a4f63d920"><td class="mdescLeft">&#160;</td><td class="mdescRight">System Clock Configuration.  <a href="main_8c.html#a70af21c671abfcc773614a9a4f63d920">More...</a><br /></td></tr>
 <tr class="separator:a70af21c671abfcc773614a9a4f63d920"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab770accc0a3c32281d41a7d3951103f6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="GY521_8h.html#ad3ad46c96171dffbc49649007b5b42f8">gyroStatus_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#ab770accc0a3c32281d41a7d3951103f6">bubbleInit</a> (void)</td></tr>
-<tr class="memdesc:ab770accc0a3c32281d41a7d3951103f6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inicializa la FSM del nivel de burbuja.  <a href="main_8c.html#ab770accc0a3c32281d41a7d3951103f6">More...</a><br /></td></tr>
-<tr class="separator:ab770accc0a3c32281d41a7d3951103f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a513fa41bc8133b17858e11688e1ee286"><td class="memItemLeft" align="right" valign="top"><a class="el" href="main_8c.html#a8d06b7dccfcfdd2feb5e7e887d1bdb5f">bubbleStatus_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a513fa41bc8133b17858e11688e1ee286">bubbleInit</a> (void)</td></tr>
+<tr class="memdesc:a513fa41bc8133b17858e11688e1ee286"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inicializa la FSM del nivel de burbuja.  <a href="main_8c.html#a513fa41bc8133b17858e11688e1ee286">More...</a><br /></td></tr>
+<tr class="separator:a513fa41bc8133b17858e11688e1ee286"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1c6e3311d3a8710ce72a2d7eaa9ee743"><td class="memItemLeft" align="right" valign="top"><a class="el" href="main_8c.html#a1b03acbe049ffa57f2cf2b6a94fe3116">bubbleState_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a1c6e3311d3a8710ce72a2d7eaa9ee743">bubbleUpdate</a> (void)</td></tr>
 <tr class="memdesc:a1c6e3311d3a8710ce72a2d7eaa9ee743"><td class="mdescLeft">&#160;</td><td class="mdescRight">Actualiza la FSM del nivel de burbuja.  <a href="main_8c.html#a1c6e3311d3a8710ce72a2d7eaa9ee743">More...</a><br /></td></tr>
 <tr class="separator:a1c6e3311d3a8710ce72a2d7eaa9ee743"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -130,9 +132,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a199edc37e5eb3bb6578fb19093cec6da"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a199edc37e5eb3bb6578fb19093cec6da">deleteSavedLevel</a> (uint8_t *posFX, uint8_t *posFY)</td></tr>
 <tr class="memdesc:a199edc37e5eb3bb6578fb19093cec6da"><td class="mdescLeft">&#160;</td><td class="mdescRight">Descarta la posición guardada de la burbuja para el modo de Comparación de Niveles.  <a href="main_8c.html#a199edc37e5eb3bb6578fb19093cec6da">More...</a><br /></td></tr>
 <tr class="separator:a199edc37e5eb3bb6578fb19093cec6da"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a88fa672843b988a199b78049c65d2e3e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a88fa672843b988a199b78049c65d2e3e">drawMatrix</a> (const uint8_t <a class="el" href="main_8c.html#a4349dfe5383d5fbd20b56036bf28fa4d">posX</a>, const uint8_t <a class="el" href="main_8c.html#aa341eef1deeaa0bd6538052196bd9a6e">posY</a>, const uint8_t posFX, const uint8_t posFY)</td></tr>
-<tr class="memdesc:a88fa672843b988a199b78049c65d2e3e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Genera el buffer de pantalla a partir de la posición (o posiciones) especificada.  <a href="main_8c.html#a88fa672843b988a199b78049c65d2e3e">More...</a><br /></td></tr>
-<tr class="separator:a88fa672843b988a199b78049c65d2e3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a02ba9e3d549c5ff9e8afb88d3d8d597a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="main_8c.html#a8d06b7dccfcfdd2feb5e7e887d1bdb5f">bubbleStatus_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a02ba9e3d549c5ff9e8afb88d3d8d597a">drawMatrix</a> (const uint8_t <a class="el" href="main_8c.html#a4349dfe5383d5fbd20b56036bf28fa4d">posX</a>, const uint8_t <a class="el" href="main_8c.html#aa341eef1deeaa0bd6538052196bd9a6e">posY</a>, const uint8_t posFX, const uint8_t posFY)</td></tr>
+<tr class="memdesc:a02ba9e3d549c5ff9e8afb88d3d8d597a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Genera y renderiza en la matriz el buffer de pantalla a partir de la posición (o posiciones) especificada.  <a href="main_8c.html#a02ba9e3d549c5ff9e8afb88d3d8d597a">More...</a><br /></td></tr>
+<tr class="separator:a02ba9e3d549c5ff9e8afb88d3d8d597a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae2d33623859408b0923249f4a261caf0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#ae2d33623859408b0923249f4a261caf0">mapAccelToPosition</a> (int16_t accX, int16_t accY, uint8_t *<a class="el" href="main_8c.html#a4349dfe5383d5fbd20b56036bf28fa4d">posX</a>, uint8_t *<a class="el" href="main_8c.html#aa341eef1deeaa0bd6538052196bd9a6e">posY</a>, uint8_t mode)</td></tr>
 <tr class="memdesc:ae2d33623859408b0923249f4a261caf0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Realiza el mapping entre los valores obtenidos del acelerómetro y la posición de la burbuja.  <a href="main_8c.html#ae2d33623859408b0923249f4a261caf0">More...</a><br /></td></tr>
 <tr class="separator:ae2d33623859408b0923249f4a261caf0"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -145,9 +147,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a436a4b3d8ea7dd3f999db6c554885f18"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a436a4b3d8ea7dd3f999db6c554885f18">mapTanH</a> (int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh)</td></tr>
 <tr class="memdesc:a436a4b3d8ea7dd3f999db6c554885f18"><td class="mdescLeft">&#160;</td><td class="mdescRight">Función auxiliar para mapeo no lineal de valores.  <a href="main_8c.html#a436a4b3d8ea7dd3f999db6c554885f18">More...</a><br /></td></tr>
 <tr class="separator:a436a4b3d8ea7dd3f999db6c554885f18"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeb2f5c0dd95e9909dd6942d7fc22f14e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#aeb2f5c0dd95e9909dd6942d7fc22f14e">sendOutputsByUart</a> (void)</td></tr>
-<tr class="memdesc:aeb2f5c0dd95e9909dd6942d7fc22f14e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Envía los valores de entrada y salida por la UART.  <a href="main_8c.html#aeb2f5c0dd95e9909dd6942d7fc22f14e">More...</a><br /></td></tr>
-<tr class="separator:aeb2f5c0dd95e9909dd6942d7fc22f14e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a900b41953dac26d729d475fb3e13b1c3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="main_8c.html#a8d06b7dccfcfdd2feb5e7e887d1bdb5f">bubbleStatus_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a900b41953dac26d729d475fb3e13b1c3">sendOutputsByUart</a> (void)</td></tr>
+<tr class="memdesc:a900b41953dac26d729d475fb3e13b1c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Envía los valores de entrada y salida por la UART.  <a href="main_8c.html#a900b41953dac26d729d475fb3e13b1c3">More...</a><br /></td></tr>
+<tr class="separator:a900b41953dac26d729d475fb3e13b1c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a840291bc02cba5474a4cb46a9b9566fe"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a840291bc02cba5474a4cb46a9b9566fe">main</a> (void)</td></tr>
 <tr class="memdesc:a840291bc02cba5474a4cb46a9b9566fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">The application entry point.  <a href="main_8c.html#a840291bc02cba5474a4cb46a9b9566fe">More...</a><br /></td></tr>
 <tr class="separator:a840291bc02cba5474a4cb46a9b9566fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -188,8 +190,8 @@ Variables</h2></td></tr>
 <tr class="separator:a5d8fa3af7dbbc344278c069c38b8ed69"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ada3434b2c2de835b63413792e45aceed"><td class="memItemLeft" align="right" valign="top"><a class="el" href="main_8c.html#a1b03acbe049ffa57f2cf2b6a94fe3116">bubbleState_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#ada3434b2c2de835b63413792e45aceed">estadoBurbuja</a></td></tr>
 <tr class="separator:ada3434b2c2de835b63413792e45aceed"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1b10329ecfc0d604a21f7a391e473557"><td class="memItemLeft" align="right" valign="top"><a class="el" href="GY521_8h.html#ad3ad46c96171dffbc49649007b5b42f8">gyroStatus_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a1b10329ecfc0d604a21f7a391e473557">estadoInitNB</a></td></tr>
-<tr class="separator:a1b10329ecfc0d604a21f7a391e473557"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5aaa92d2b830f5c07e77443a1af78057"><td class="memItemLeft" align="right" valign="top"><a class="el" href="main_8c.html#a8d06b7dccfcfdd2feb5e7e887d1bdb5f">bubbleStatus_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a5aaa92d2b830f5c07e77443a1af78057">estadoInitNB</a></td></tr>
+<tr class="separator:a5aaa92d2b830f5c07e77443a1af78057"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6c04be770031c30fc9de2c699c836e3e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structdelay__t.html">delay_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a6c04be770031c30fc9de2c699c836e3e">bubbleDelay</a></td></tr>
 <tr class="separator:a6c04be770031c30fc9de2c699c836e3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4349dfe5383d5fbd20b56036bf28fa4d"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a4349dfe5383d5fbd20b56036bf28fa4d">posX</a></td></tr>
@@ -230,34 +232,6 @@ Variables</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">#define MAP_MODE_TANH&#160;&#160;&#160;1</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a144c7d32cf5ab713b7507dfd2a600cae"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a144c7d32cf5ab713b7507dfd2a600cae">&#9670;&nbsp;</a></span>MATRIX_HEIGHT</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define MATRIX_HEIGHT&#160;&#160;&#160;8</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="af04e6ec3c92f294d177b2ffd4885ee71"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af04e6ec3c92f294d177b2ffd4885ee71">&#9670;&nbsp;</a></span>MATRIX_WIDTH</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define MATRIX_WIDTH&#160;&#160;&#160;8</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -327,19 +301,40 @@ Variables</h2></td></tr>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a1b03acbe049ffa57f2cf2b6a94fe3116acfa12d917235125362d1c1bc3d9d0726"></a>MEDICION_SIMPLE&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="a1b03acbe049ffa57f2cf2b6a94fe3116a54fe9849f639fda35c012ad5e3faf55d"></a>COMPARACION_NIVELES&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a1b03acbe049ffa57f2cf2b6a94fe3116a3a0343339ba04410c25c8c27be7bf160"></a>FSM_ERROR&#160;</td><td class="fielddoc"></td></tr>
 </table>
 
 </div>
 </div>
-<h2 class="groupheader">Function Documentation</h2>
-<a id="ab770accc0a3c32281d41a7d3951103f6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab770accc0a3c32281d41a7d3951103f6">&#9670;&nbsp;</a></span>bubbleInit()</h2>
+<a id="a8d06b7dccfcfdd2feb5e7e887d1bdb5f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8d06b7dccfcfdd2feb5e7e887d1bdb5f">&#9670;&nbsp;</a></span>bubbleStatus_t</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="GY521_8h.html#ad3ad46c96171dffbc49649007b5b42f8">gyroStatus_t</a> bubbleInit </td>
+          <td class="memname">enum <a class="el" href="main_8c.html#a8d06b7dccfcfdd2feb5e7e887d1bdb5f">bubbleStatus_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Estado de la operación. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a8d06b7dccfcfdd2feb5e7e887d1bdb5fa5bde228d9506a863d51ffbc868ff67f7"></a>STATUS_ERROR&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a8d06b7dccfcfdd2feb5e7e887d1bdb5fa7e4a42e3b6dd63708c64cf3db6f69566"></a>STATUS_OK&#160;</td><td class="fielddoc"></td></tr>
+</table>
+
+</div>
+</div>
+<h2 class="groupheader">Function Documentation</h2>
+<a id="a513fa41bc8133b17858e11688e1ee286"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a513fa41bc8133b17858e11688e1ee286">&#9670;&nbsp;</a></span>bubbleInit()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="main_8c.html#a8d06b7dccfcfdd2feb5e7e887d1bdb5f">bubbleStatus_t</a> bubbleInit </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -460,14 +455,14 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<a id="a88fa672843b988a199b78049c65d2e3e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a88fa672843b988a199b78049c65d2e3e">&#9670;&nbsp;</a></span>drawMatrix()</h2>
+<a id="a02ba9e3d549c5ff9e8afb88d3d8d597a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a02ba9e3d549c5ff9e8afb88d3d8d597a">&#9670;&nbsp;</a></span>drawMatrix()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void drawMatrix </td>
+          <td class="memname"><a class="el" href="main_8c.html#a8d06b7dccfcfdd2feb5e7e887d1bdb5f">bubbleStatus_t</a> drawMatrix </td>
           <td>(</td>
           <td class="paramtype">const uint8_t&#160;</td>
           <td class="paramname"><em>posX</em>, </td>
@@ -498,7 +493,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Genera el buffer de pantalla a partir de la posición (o posiciones) especificada. </p>
+<p>Genera y renderiza en la matriz el buffer de pantalla a partir de la posición (o posiciones) especificada. </p>
 <p>Esta función identifica los leds que necesitan encenderse para representar la posición de la burbuja definida. También identifica si existe una posición fija para representar, y de ser así, también será representada en el buffer de pantalla generado. Al finalizar el armado del buffer de pantalla, llamará a las funciones correspondientes para renderizar el buffer de pantalla en la matrix y enviar los valores actuales de acelerómetro y posiciones por la UART.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -796,14 +791,14 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<a id="aeb2f5c0dd95e9909dd6942d7fc22f14e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aeb2f5c0dd95e9909dd6942d7fc22f14e">&#9670;&nbsp;</a></span>sendOutputsByUart()</h2>
+<a id="a900b41953dac26d729d475fb3e13b1c3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a900b41953dac26d729d475fb3e13b1c3">&#9670;&nbsp;</a></span>sendOutputsByUart()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void sendOutputsByUart </td>
+          <td class="memname"><a class="el" href="main_8c.html#a8d06b7dccfcfdd2feb5e7e887d1bdb5f">bubbleStatus_t</a> sendOutputsByUart </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -947,14 +942,14 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<a id="a1b10329ecfc0d604a21f7a391e473557"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1b10329ecfc0d604a21f7a391e473557">&#9670;&nbsp;</a></span>estadoInitNB</h2>
+<a id="a5aaa92d2b830f5c07e77443a1af78057"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5aaa92d2b830f5c07e77443a1af78057">&#9670;&nbsp;</a></span>estadoInitNB</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="GY521_8h.html#ad3ad46c96171dffbc49649007b5b42f8">gyroStatus_t</a> estadoInitNB</td>
+          <td class="memname"><a class="el" href="main_8c.html#a8d06b7dccfcfdd2feb5e7e887d1bdb5f">bubbleStatus_t</a> estadoInitNB</td>
         </tr>
       </table>
 </div><div class="memdoc">

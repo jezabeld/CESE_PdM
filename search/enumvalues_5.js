@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['matrix_5ferror_485',['MATRIX_ERROR',['../ledMatrix_8h.html#a38742aa283c7822493ea4c5ace559fbcaeefc56e5a7eac691a138d017662cd32b',1,'ledMatrix.h']]],
-  ['matrix_5fok_486',['MATRIX_OK',['../ledMatrix_8h.html#a38742aa283c7822493ea4c5ace559fbca3a38737ba3da01895a63b93eae649ffe',1,'ledMatrix.h']]],
-  ['medicion_5fsimple_487',['MEDICION_SIMPLE',['../main_8c.html#a1b03acbe049ffa57f2cf2b6a94fe3116acfa12d917235125362d1c1bc3d9d0726',1,'main.c']]]
+  ['low_5fnoise_5facc_5fmode_489',['LOW_NOISE_ACC_MODE',['../GY521_8h.html#af0c0f8d02c73b2d5856042967abf8dc6ac2b01383a59aa6201dd948cf17987e6b',1,'GY521.h']]],
+  ['low_5fpower_5facc_5fmode_490',['LOW_POWER_ACC_MODE',['../GY521_8h.html#af0c0f8d02c73b2d5856042967abf8dc6a6729cd768e555dd1186158c6d24c5973',1,'GY521.h']]]
 ];
