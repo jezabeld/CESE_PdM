@@ -34,15 +34,21 @@
 typedef enum{
 	MEDICION_SIMPLE,
 	COMPARACION_NIVELES,
+	FSM_ERROR,
 } bubbleState_t;
 
+/**
+ * @brief Estado de la operación.
+ */
+typedef enum{
+	STATUS_ERROR,
+	STATUS_OK,
+} bubbleStatus_t;
 
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD *//******************************************************/
-#define MATRIX_WIDTH 8
-#define MATRIX_HEIGHT 8
 #define NOT_VALID_POS 8
 #define MAP_MODE_TANH 1
 #define MOVEMENT_SENSIBILITY 2.0 ///< Sensibilidad del movimiento de la burbuja (valores posibles: 1.5, 2.0, 2.5, 3.0)
@@ -90,7 +96,7 @@ int16_t accelX, accelY, accelZ;
 
 // parámetros para la aplicación
 bubbleState_t estadoBurbuja;
-gyroStatus_t estadoInitNB;
+bubbleStatus_t estadoInitNB;
 delay_t bubbleDelay;
 // Posición del dot en la pantalla
 uint8_t posX;
@@ -117,7 +123,7 @@ static void MX_I2C1_Init(void);
  * @return Estado de inicialización: `INIT_OK` si fue exitosa, `INIT_ERROR` si algún periférico
  * no inicializó correctamente.
  */
-gyroStatus_t bubbleInit(void);
+bubbleStatus_t bubbleInit(void);
 
 /**
  * @brief Actualiza la FSM del nivel de burbuja.
@@ -152,7 +158,7 @@ void saveCurrentLevel(uint8_t posX, uint8_t posY, uint8_t * posFX, uint8_t * pos
 void deleteSavedLevel(uint8_t * posFX, uint8_t * posFY);
 
 /**
- * @brief Genera el buffer de pantalla a partir de la posición (o posiciones) especificada.
+ * @brief Genera y renderiza en la matriz el buffer de pantalla a partir de la posición (o posiciones) especificada.
  *
  * Esta función identifica los leds que necesitan encenderse para representar la posición de la burbuja
  * definida. También identifica si existe una posición fija para representar, y de ser así, también será
@@ -165,7 +171,7 @@ void deleteSavedLevel(uint8_t * posFX, uint8_t * posFY);
  * @param posFX Posición de la burbuja fija en el eje X de la matrix (en modo Comparación de Niveles).
  * @param posFY Posición de la burbuja fija en el eje Y de la matrix (en modo Comparación de Niveles).
  */
-void drawMatrix(const uint8_t posX, const uint8_t posY, const uint8_t posFX, const uint8_t posFY);
+bubbleStatus_t drawMatrix(const uint8_t posX, const uint8_t posY, const uint8_t posFX, const uint8_t posFY);
 
 /**
  * @brief Realiza el mapping entre los valores obtenidos del acelerómetro y la posición de la burbuja.
@@ -235,7 +241,7 @@ int32_t mapTanH(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow,
  * Niveles) junto a los valores leídos del acelerómetro y los valores calculados de posición de las burbujas
  * móvil y fija.
  */
-void sendOutputsByUart(void);
+bubbleStatus_t sendOutputsByUart(void);
 
 /* USER CODE END PFP */
 
@@ -281,7 +287,7 @@ int main(void)
   /* MAIN USER CODE ***********************************************************/
 	uartInit();
 	estadoInitNB = bubbleInit();
-    uartSendString((estadoInitNB == GYRO_OK) ? "Nivel de Burbuja inicializado\r\n" : "Error de inicialización\r\n");
+    uartSendString((estadoInitNB == STATUS_OK) ? "Nivel de Burbuja inicializado\r\n" : "Error de inicialización\r\n");
 
 
 	// delay de renderizado
@@ -462,7 +468,7 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 /******************************************************************************/
 
-gyroStatus_t bubbleInit(void){
+bubbleStatus_t bubbleInit(void){
 	estadoBurbuja = MEDICION_SIMPLE;
 	posFijaX = NOT_VALID_POS;
 	posFijaY = NOT_VALID_POS;
@@ -472,12 +478,12 @@ gyroStatus_t bubbleInit(void){
 	debounceFSM_init();
 
 	if(gyroStatus == GYRO_ERROR || lmStatus == MATRIX_ERROR){
-		return GYRO_ERROR;
+		return STATUS_ERROR;
 	}
-	ledMatrixClear(&myMatrix);
-	ledMatrixRender(&myMatrix, smileyWelcome);
+	lmStatus = ledMatrixClear(&myMatrix); if (lmStatus == MATRIX_ERROR) return STATUS_ERROR;
+	lmStatus = ledMatrixRender(&myMatrix, smileyWelcome); if (lmStatus == MATRIX_ERROR) return STATUS_ERROR;
 	HAL_Delay(INIT_TIME); // tiempo de la pantalla de inicio
-	return GYRO_OK;
+	return STATUS_OK;
 }
 
 bubbleState_t bubbleUpdate(void){
@@ -502,15 +508,15 @@ bubbleState_t bubbleUpdate(void){
 
 	// Salidas:
 	if(delayRead(&bubbleDelay)){
-		gyroReadAccel(&myGyro, &accelX, &accelY, &accelZ);
+		gyroStatus_t status = gyroReadAccel(&myGyro, &accelX, &accelY, &accelZ); if(status == GYRO_ERROR) return FSM_ERROR;
 		mapAccelToPosition(accelX, accelY, &posX, &posY, MAP_MODE_TANH);
-		drawMatrix(posX, posY, posFijaX, posFijaY);
+		bubbleStatus_t statusM = drawMatrix(posX, posY, posFijaX, posFijaY); if(statusM == STATUS_ERROR) return FSM_ERROR;
 	}
 
 	return estadoBurbuja;
 }
 
-void drawMatrix(const uint8_t posX, const uint8_t posY, const uint8_t posFX, const uint8_t posFY) {
+bubbleStatus_t drawMatrix(const uint8_t posX, const uint8_t posY, const uint8_t posFX, const uint8_t posFY) {
 	assert_param((posX >= 0) && (posX < MATRIX_WIDTH));
 	assert_param((posY >= 0) && (posY < MATRIX_HEIGHT));
 	assert_param((posFX >= 0) && (posFX <= MATRIX_WIDTH));
@@ -532,8 +538,9 @@ void drawMatrix(const uint8_t posX, const uint8_t posY, const uint8_t posFX, con
 		}
 		DISPLAY[col] = display_column;
 	}
-	ledMatrixRender(&myMatrix, DISPLAY);
+	matrixStatus_t status = ledMatrixRender(&myMatrix, DISPLAY); if(status == MATRIX_ERROR) return STATUS_ERROR;
 	sendOutputsByUart();
+	return STATUS_OK;
 }
 
 void saveCurrentLevel(uint8_t posX, uint8_t posY, uint8_t * posFX, uint8_t * posFY){
@@ -579,27 +586,28 @@ int32_t mapValues(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLo
 	return (int32_t)((value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow) + toLow);
 }
 int32_t mapTanH(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh){
-	double norm = (double)value / fromHigh; // -1.0 a 1.0
-	double curved = (tanh(norm * MOVEMENT_SENSIBILITY) + 1.0) / 2.0; // 0.0 a 1.0
-	return (int32_t)(curved * (toHigh - toLow) + toLow);
+	double norm = (double)(value - fromLow) / (fromHigh - fromLow) * 2.0 - 1.0; // Escala el valor entre -1.0 y 1.0
+	double curved = (tanh(norm * MOVEMENT_SENSIBILITY) + 1.0) / 2.0; // Modeliza entre 0.0 y 1.0
+	return (int32_t)(curved * (toHigh - toLow) + toLow); // Escala al rango de salida
 }
 
-void sendOutputsByUart(void){
+bubbleStatus_t sendOutputsByUart(void){
 	if(estadoBurbuja == MEDICION_SIMPLE){
 		  uartSendString("Estado: MEDICION SIMPLE \r\n");
 	  } else {
 		  uartSendString("Estado: COMPARACION NIVELES \r\n");
 	  }
-
-	  uartSendString("Acc X: "); 	uartSendValue(accelX);
-	  uartSendString(", Acc Y: "); 	uartSendValue(accelY);
-	  uartSendString(", Acc Z: "); 	uartSendValue(accelZ);
-	  uartSendString(", pos X: "); 	uartSendValue(posX);
-	  uartSendString(", pos Y: ");	uartSendValue(posY);
-	  uartSendString(", pos FX: ");	uartSendValue(posFijaX);
-	  uartSendString(", pos FY: ");	uartSendValue(posFijaY);
-	  uartSendString("\r\n");
-
+	uint8_t status = 0; // La variable HAL_StatusTypeDef vale 0 si HAL_OK y más de 0 si hay errores o timeout, si los sumo y dan 0 todos fueron HAL_OK.
+	status +=  uartSendString("Acc X: "); status +=	uartSendValue(accelX);
+	status +=  uartSendString(", Acc Y: "); status +=	uartSendValue(accelY);
+	status +=  uartSendString(", Acc Z: "); status +=	uartSendValue(accelZ);
+	status +=  uartSendString(", pos X: "); status +=	uartSendValue(posX);
+	status +=  uartSendString(", pos Y: ");	status += uartSendValue(posY);
+	status +=  uartSendString(", pos FX: "); status +=	uartSendValue(posFijaX);
+	status +=  uartSendString(", pos FY: "); status +=	uartSendValue(posFijaY);
+	status +=  uartSendString("\r\n");
+	if(status) return STATUS_ERROR;
+	return STATUS_OK;
 }
 /******************************************************************************/
 /* USER CODE END 4 */
